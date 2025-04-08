@@ -71,9 +71,9 @@ export default function Home() {
             className="mt-16 w-full max-w-3xl overflow-hidden rounded-t-xl border bg-background shadow-xl"
           >
             <Image
-              src="/images/"
-              width={1200}
-              height={600}
+              src="/images/IMG_6959.JPG"
+              width={900}
+              height={400}
               alt="Miesieduo Veria's featured work"
               className="w-full object-cover"
             />
@@ -146,16 +146,16 @@ export default function Home() {
           <ProjectCard
             title="E-Commerce Platform"
             description="A full-featured online store with product management, cart functionality, and secure checkout."
-            image="/placeholder.svg?height=400&width=600"
+            image="/images/azaikiartgallery.org.ng_.png"
             tags={["Next.js", "Tailwind CSS", "Stripe"]}
-            link="/web/project-1"
+            link="https://www.azaikiartgallery.org.ng"
             delay={0.1}
           />
 
           <ProjectCard
             title="Adventure Quest"
             description="An immersive 3D adventure game with puzzle-solving mechanics and rich storytelling."
-            image="/placeholder.svg?height=400&width=600"
+            image="/images/"
             tags={["Three.js", "WebGL", "Game Design"]}
             link="/games/project-1"
             delay={0.2}
@@ -164,7 +164,7 @@ export default function Home() {
           <ProjectCard
             title="Wildlife Series"
             description="A collection of nature photographs capturing the beauty and diversity of wildlife."
-            image="/placeholder.svg?height=400&width=600"
+            image="/images/IMG_20240322_160418_515.jpg"
             tags={["Photography", "Nature", "Wildlife"]}
             link="/photography/project-1"
             delay={0.3}
