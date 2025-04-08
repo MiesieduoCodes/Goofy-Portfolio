@@ -76,7 +76,7 @@ export default function WebPage() {
           <ProjectCard
             title="Azaiki Art Gallery And Museum"
             description="A full-featured online store with product management, cart functionality, and secure checkout."
-            image="/images/"
+            image="/images/azaikiartgallery.org.ng_.png"
             tags={["Next.js", "Tailwind CSS", "Typescript", "Flutterwave"]}
             link="https://azaikiartgallery.org.ng"
             delay={0.1}
@@ -85,7 +85,7 @@ export default function WebPage() {
           <ProjectCard
             title="Empower Her"
             description="A comprehensive dashboard for managing social media accounts and analyzing performance metrics."
-            image="/images/"
+            image="/images/dfcinspire.vercel.app_.png"
             tags={["Next.js", "TypeScript", "Flutterwave"]}
             link="/web/project-2"
             delay={0.2}
@@ -94,7 +94,7 @@ export default function WebPage() {
           <ProjectCard
             title="Anim8"
             description="A collaborative task management application with real-time updates and team collaboration features."
-            image="/images/"
+            image="/images/anim8-two.vercel.app_.png"
             tags={["Next.js", "Firebase", "Tailwind CSS"]}
             link="anim8-two.vercel.app"
             delay={0.3}
@@ -112,7 +112,7 @@ export default function WebPage() {
           <ProjectCard
             title="Evelyn Oweibo Foundation"
             description="A property listing and management platform with advanced search and filtering capabilities."
-            image="/images/"
+            image="/images/evelynoweibofoundation.org_.png"
             tags={["Next.js", "MongoDB", "Google Maps API"]}
             link="https://evelynoweibofoundation.org/"
             delay={0.5}
@@ -121,9 +121,19 @@ export default function WebPage() {
           <ProjectCard
             title="Global Sports FC"
             description="A property listing and management platform with advanced search and filtering capabilities."
-            image="/images/"
+            image="/images/globalsports.vercel.app_.png"
             tags={["Next.js", "MongoDB", "Google Maps API"]}
             link="https://globalsportsfc.com/"
+            delay={0.5}
+          />
+
+          
+          <ProjectCard
+            title="Faven LP"
+            description="A property listing and management platform with advanced search and filtering capabilities."
+            image="/images/www.favenlp.com_.png"
+            tags={["Next.js", "MongoDB", "Google Maps API"]}
+            link="https://www.favenlp.com/"
             delay={0.5}
           />
         </div>

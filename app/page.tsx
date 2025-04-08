@@ -71,7 +71,7 @@ export default function Home() {
             className="mt-16 w-full max-w-3xl overflow-hidden rounded-t-xl border bg-background shadow-xl"
           >
             <Image
-              src="/placeholder.svg?height=600&width=1200"
+              src="/images/"
               width={1200}
               height={600}
               alt="Miesieduo Veria's featured work"
