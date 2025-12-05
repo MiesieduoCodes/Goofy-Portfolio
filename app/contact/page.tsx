@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Github, Instagram, Linkedin, Mail, MapPin, Phone, Send, Twitter } from "lucide-react"
 import { AnimatedText } from "@/components/animated-text"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { PageTransition } from "@/components/page-transition"
 import emailjs from '@emailjs/browser'
 
 export default function ContactPage() {
@@ -81,16 +82,23 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="flex flex-col gap-16 pb-16">
+    <PageTransition>
+      <div className="flex flex-col gap-16 pb-16">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-muted pt-16 md:pt-24">
-        <div className="container flex flex-col items-center text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
+          <div className="absolute bottom-20 left-20 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
+        </div>
+        <div className="container relative z-10 flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">Get in Touch</h1>
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+              Get in <span className="gradient-text">Touch</span>
+            </h1>
           </motion.div>
 
           <AnimatedText
@@ -112,35 +120,44 @@ export default function ContactPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="rounded-full bg-primary/10 p-2 text-primary">
+                <motion.div 
+                  className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 p-3 text-primary shadow-md">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
                     <h3 className="font-medium">Email</h3>
                     <p className="text-muted-foreground">goofydidthis@gmail.com</p>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="flex items-start gap-4">
-                  <div className="rounded-full bg-primary/10 p-2 text-primary">
+                <motion.div 
+                  className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 p-3 text-primary shadow-md">
                     <Phone className="h-5 w-5" />
                   </div>
                   <div>
                     <h3 className="font-medium">Phone</h3>
                     <p className="text-muted-foreground">+234 906 064 2206, +234 906 648 6040</p>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="flex items-start gap-4">
-                  <div className="rounded-full bg-primary/10 p-2 text-primary">
+                <motion.div 
+                  className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 p-3 text-primary shadow-md">
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
                     <h3 className="font-medium">Location</h3>
                     <p className="text-muted-foreground">Yenagoa, Bayelsa State</p>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               <div className="space-y-4">
@@ -195,7 +212,7 @@ export default function ContactPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <Card>
+            <Card className="border-2 shadow-xl hover:shadow-2xl transition-all duration-300">
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold">Send a Message</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -380,6 +397,7 @@ export default function ContactPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+      </div>
+    </PageTransition>
   )
 }

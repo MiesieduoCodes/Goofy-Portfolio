@@ -8,19 +8,27 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Download, FileText } from "lucide-react"
 import { AnimatedText } from "@/components/animated-text"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { PageTransition } from "@/components/page-transition"
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col gap-16 pb-16">
+    <PageTransition>
+      <div className="flex flex-col gap-16 pb-16">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-muted pt-16 md:pt-24">
-        <div className="container flex flex-col items-center text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
+          <div className="absolute bottom-20 right-20 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
+        </div>
+        <div className="container relative z-10 flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">About Me</h1>
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+              About <span className="gradient-text">Me</span>
+            </h1>
           </motion.div>
 
           <AnimatedText
@@ -35,9 +43,19 @@ export default function AboutPage() {
       <section className="container">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
           <ScrollReveal>
-            <div className="relative aspect-square overflow-hidden rounded-lg">
-              <Image src="/images/IMG-20250325-WA0019(1).jpg" alt="Miesieduo Veria" fill className="object-cover" />
-            </div>
+            <motion.div 
+              className="relative aspect-square overflow-hidden rounded-2xl border-2 border-primary/20 shadow-2xl"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Image 
+                src="/images/IMG-20250325-WA0019(1).jpg" 
+                alt="Miesieduo Veria" 
+                fill 
+                className="object-cover transition-transform duration-700 hover:scale-110" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent"></div>
+            </motion.div>
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
@@ -134,18 +152,21 @@ export default function AboutPage() {
               },
             ].map((event, index) => (
               <ScrollReveal key={index} delay={0.1 * index}>
-                <div className="flex flex-col gap-4 md:flex-row">
+                <motion.div 
+                  className="flex flex-col gap-4 md:flex-row p-6 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+                  whileHover={{ scale: 1.01, x: 5 }}
+                >
                   <div className="flex-shrink-0 md:w-32">
-                    <div className="rounded-full bg-primary/10 px-4 py-2 text-center font-bold text-primary">
+                    <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 px-4 py-2 text-center font-bold text-primary shadow-md border border-primary/20">
                       {event.year}
                     </div>
                   </div>
-                  <div className="relative border-l border-primary/30 pl-6 md:border-l-0">
-                    <div className="absolute -left-1.5 top-2 h-3 w-3 rounded-full bg-primary"></div>
-                    <h3 className="text-xl font-bold">{event.title}</h3>
-                    <p className="mt-2 text-muted-foreground">{event.description}</p>
+                  <div className="relative border-l-2 border-primary/30 pl-6 md:border-l-0">
+                    <div className="absolute -left-2 top-2 h-4 w-4 rounded-full bg-primary shadow-lg ring-2 ring-primary/20"></div>
+                    <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{event.title}</h3>
+                    <p className="mt-2 text-muted-foreground leading-relaxed">{event.description}</p>
                   </div>
-                </div>
+                </motion.div>
               </ScrollReveal>
             ))}
           </div>
@@ -165,7 +186,7 @@ export default function AboutPage() {
 
         <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
           <ScrollReveal delay={0.1}>
-            <Card>
+            <Card className="border-2 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold">Technical Skills</h3>
                 <div className="mt-4 space-y-4">
@@ -198,7 +219,7 @@ export default function AboutPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <Card>
+            <Card className="border-2 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold">Creative Skills</h3>
                 <div className="mt-4 space-y-4">
@@ -256,8 +277,8 @@ export default function AboutPage() {
             ].map((tool, index) => (
               <ScrollReveal key={tool} delay={0.05 * index}>
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="flex items-center justify-center rounded-lg border bg-background p-4 text-center transition-all hover:border-primary hover:shadow-md"
+                  whileHover={{ scale: 1.1, y: -5 }}
+                  className="flex items-center justify-center rounded-lg border-2 border-border bg-background p-4 text-center transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20 hover:bg-primary/5"
                 >
                   <span className="text-sm font-medium">{tool}</span>
                 </motion.div>
@@ -295,7 +316,8 @@ export default function AboutPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+      </div>
+    </PageTransition>
   )
 }
 

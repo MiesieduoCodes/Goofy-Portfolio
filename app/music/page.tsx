@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowRight, Play, Pause, Volume2, VolumeX } from "lucide-react"
 import { AnimatedText } from "@/components/animated-text"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { PageTransition } from "@/components/page-transition"
 import { Slider } from "@/components/ui/slider"
 
 // Drum performances data
@@ -88,15 +89,15 @@ const drumKitParts = [
 
 export default function MusicPage() {
   const [activeTab, setActiveTab] = useState("performances")
-  const [currentAudio, setCurrentAudio] = useState(null)
+  const [currentAudio, setCurrentAudio] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [volume, setVolume] = useState(0.8)
-  const audioRef = useRef(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
 
-  const handlePlayPause = (audioSrc) => {
+  const handlePlayPause = (audioSrc: string) => {
     if (currentAudio === audioSrc && isPlaying) {
-      audioRef.current.pause()
+      audioRef.current?.pause()
       setIsPlaying(false)
     } else {
       if (currentAudio !== audioSrc) {
@@ -106,12 +107,12 @@ export default function MusicPage() {
           audioRef.current.load()
         }
       }
-      audioRef.current.play()
+      audioRef.current?.play()
       setIsPlaying(true)
     }
   }
 
-  const handleVolumeChange = (value) => {
+  const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0]
     setVolume(newVolume)
     if (audioRef.current) {
@@ -137,19 +138,26 @@ export default function MusicPage() {
   }
 
   return (
-    <div className="flex flex-col gap-16 pb-16">
+    <PageTransition>
+      <div className="flex flex-col gap-16 pb-16">
       {/* Hidden audio element */}
-      <audio ref={audioRef} onEnded={() => setIsPlaying(false)} src={currentAudio} />
+      <audio ref={audioRef} onEnded={() => setIsPlaying(false)} src={currentAudio || undefined} />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-muted pt-16 md:pt-24">
-        <div className="container flex flex-col items-center text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
+          <div className="absolute bottom-20 left-20 h-64 w-64 rounded-full bg-pink-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
+        </div>
+        <div className="container relative z-10 flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">Music & Drumming</h1>
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+              Music & <span className="gradient-text">Drumming</span>
+            </h1>
           </motion.div>
 
           <AnimatedText
@@ -211,22 +219,27 @@ export default function MusicPage() {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               {performances.map((performance, index) => (
                 <ScrollReveal key={performance.id} delay={0.1 * index}>
-                  <Card className="overflow-hidden">
-                    <div className="aspect-video overflow-hidden">
-                      <Image
-                        src={performance.image || "/placeholder.svg"}
-                        alt={performance.title}
-                        width={600}
-                        height={400}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold">{performance.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {performance.venue} • {new Date(performance.date).toLocaleDateString()}
-                      </p>
-                      <p className="mt-2">{performance.description}</p>
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="group overflow-hidden border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+                      <div className="aspect-video overflow-hidden relative">
+                        <Image
+                          src={performance.image || "/placeholder.svg"}
+                          alt={performance.title}
+                          width={600}
+                          height={400}
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{performance.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {performance.venue} • {new Date(performance.date).toLocaleDateString()}
+                        </p>
+                        <p className="mt-2 leading-relaxed">{performance.description}</p>
 
                       <div className="mt-4 flex items-center gap-4">
                         <Button
@@ -258,6 +271,7 @@ export default function MusicPage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </motion.div>
                 </ScrollReveal>
               ))}
             </div>
@@ -268,21 +282,27 @@ export default function MusicPage() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {drumKitParts.map((part, index) => (
                 <ScrollReveal key={part.name} delay={0.1 * index}>
-                  <Card className="overflow-hidden">
-                    <div className="aspect-square overflow-hidden">
-                      <Image
-                        src={part.image || "/placeholder.svg"}
-                        alt={part.name}
-                        width={300}
-                        height={300}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold">{part.name}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">{part.description}</p>
-                    </CardContent>
-                  </Card>
+                  <motion.div
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="group overflow-hidden border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+                      <div className="aspect-square overflow-hidden relative">
+                        <Image
+                          src={part.image || "/placeholder.svg"}
+                          alt={part.name}
+                          width={300}
+                          height={300}
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+                      <CardContent className="p-6">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{part.name}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{part.description}</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 </ScrollReveal>
               ))}
             </div>
@@ -316,23 +336,29 @@ export default function MusicPage() {
                 },
               ].map((influence, index) => (
                 <ScrollReveal key={influence.name} delay={0.1 * index}>
-                  <Card className="overflow-hidden">
-                    <div className="grid grid-cols-1 md:grid-cols-3">
-                      <div className="aspect-square md:col-span-1">
-                        <Image
-                          src={influence.image || "/placeholder.svg"}
-                          alt={influence.name}
-                          width={400}
-                          height={400}
-                          className="h-full w-full object-cover"
-                        />
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="group overflow-hidden border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+                      <div className="grid grid-cols-1 md:grid-cols-3">
+                        <div className="aspect-square md:col-span-1 relative overflow-hidden">
+                          <Image
+                            src={influence.image || "/placeholder.svg"}
+                            alt={influence.name}
+                            width={400}
+                            height={400}
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        <CardContent className="p-6 md:col-span-2">
+                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{influence.name}</h3>
+                          <p className="mt-2 leading-relaxed">{influence.description}</p>
+                        </CardContent>
                       </div>
-                      <CardContent className="p-6 md:col-span-2">
-                        <h3 className="text-xl font-bold">{influence.name}</h3>
-                        <p className="mt-2">{influence.description}</p>
-                      </CardContent>
-                    </div>
-                  </Card>
+                    </Card>
+                  </motion.div>
                 </ScrollReveal>
               ))}
             </div>
@@ -375,8 +401,12 @@ export default function MusicPage() {
               },
             ].map((event, index) => (
               <ScrollReveal key={index} delay={0.1 * index}>
-                <Card>
-                  <CardContent className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
+                <motion.div
+                  whileHover={{ scale: 1.02, x: 5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+                    <CardContent className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
                     <div>
                       <div className="text-sm font-medium text-primary">
                         {new Date(event.date).toLocaleDateString(undefined, {
@@ -399,6 +429,7 @@ export default function MusicPage() {
                     </Button>
                   </CardContent>
                 </Card>
+                </motion.div>
               </ScrollReveal>
             ))}
           </div>
@@ -434,7 +465,8 @@ export default function MusicPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+      </div>
+    </PageTransition>
   )
 }
 

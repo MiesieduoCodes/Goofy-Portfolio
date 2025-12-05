@@ -7,24 +7,30 @@ import Logo from "@/components/logo"
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-background">
-      <div className="container py-8 md:py-12">
+    <footer className="relative border-t bg-gradient-to-b from-background to-muted/30">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5OTk5OTkiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
+      <div className="container relative z-10 py-8 md:py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="flex flex-col gap-2"
-          >
-            <div className="flex items-center gap-2">
-              <Logo className="h-6 w-6" />
-              <span className="font-bold">Miesieduo Veria</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Web Developer, Game Developer, Nature Photographer, and Drummer
-            </p>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex items-center gap-2">
+                <motion.div
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <Logo className="h-6 w-6 text-primary" />
+                </motion.div>
+                <span className="font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">Miesieduo Veria</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Web Developer, Game Developer, Nature Photographer, and Drummer
+              </p>
+            </motion.div>
           <div className="grid grid-cols-2 gap-4 md:col-span-2 md:grid-cols-3">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -87,34 +93,50 @@ export default function Footer() {
             >
               <h3 className="text-sm font-medium">Social</h3>
               <div className="flex gap-3">
-                <Link
+                <motion.a
                   href="https://github.com/goofydidthis"
-                  className="text-muted-foreground hover:text-foreground transition-all hover:scale-110"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-full bg-muted p-2.5 text-muted-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
                 >
                   <Github className="h-5 w-5" />
                   <span className="sr-only">GitHub</span>
-                </Link>
-                <Link
+                </motion.a>
+                <motion.a
                   href="https://twitter.com/goofydidthis"
-                  className="text-muted-foreground hover:text-foreground transition-all hover:scale-110"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-full bg-muted p-2.5 text-muted-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
                 >
                   <Twitter className="h-5 w-5" />
                   <span className="sr-only">Twitter</span>
-                </Link>
-                <Link
+                </motion.a>
+                <motion.a
                   href="https://instagram.com/goofydidthis"
-                  className="text-muted-foreground hover:text-foreground transition-all hover:scale-110"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-full bg-muted p-2.5 text-muted-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
                 >
                   <Instagram className="h-5 w-5" />
                   <span className="sr-only">Instagram</span>
-                </Link>
-                <Link
+                </motion.a>
+                <motion.a
                   href="https://linkedin.com/in/miesieduo-veria"
-                  className="text-muted-foreground hover:text-foreground transition-all hover:scale-110"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="rounded-full bg-muted p-2.5 text-muted-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
                 >
                   <Linkedin className="h-5 w-5" />
                   <span className="sr-only">LinkedIn</span>
-                </Link>
+                </motion.a>
               </div>
             </motion.div>
           </div>

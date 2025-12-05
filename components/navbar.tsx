@@ -54,13 +54,18 @@ export default function Navbar() {
       initial="hidden"
       animate="visible"
       variants={navVariants}
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${isScrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-background"}`}
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled ? "bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5 border-b border-border/50" : "bg-background/80 backdrop-blur-sm"}`}
     >
       <div className="container flex h-16 items-center justify-between">
         <motion.div variants={itemVariants} className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-8 w-8" />
-            <span className="hidden font-bold sm:inline-block">Miesieduo Veria</span>
+          <Link href="/" className="flex items-center gap-2 group/logo transition-all duration-300 hover:scale-105">
+            <motion.div
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            >
+              <Logo className="h-8 w-8 text-primary" />
+            </motion.div>
+            <span className="hidden font-bold sm:inline-block bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text group-hover/logo:from-primary group-hover/logo:to-purple-600 transition-all duration-300">Miesieduo Veria</span>
           </Link>
         </motion.div>
 
@@ -69,10 +74,10 @@ export default function Navbar() {
             <motion.div key={route.href} variants={itemVariants} custom={index}>
               <Link
                 href={route.href}
-                className={`text-sm font-medium transition-colors hover:text-primary relative group ${pathname === route.href ? "text-primary" : "text-muted-foreground"}`}
+                className={`text-sm font-medium transition-all duration-300 hover:text-primary relative group ${pathname === route.href ? "text-primary font-semibold" : "text-muted-foreground"}`}
               >
                 {route.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-purple-600 transition-all duration-300 ${pathname === route.href ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </Link>
             </motion.div>
           ))}
@@ -80,10 +85,15 @@ export default function Navbar() {
             <ModeToggle />
           </motion.div>
           <motion.div variants={itemVariants}>
-            <Button asChild size="sm" className="relative overflow-hidden group">
+            <Button asChild size="sm" className="relative overflow-hidden group shadow-md hover:shadow-lg transition-all duration-300">
               <Link href="/admin">
                 <span className="relative z-10">Admin</span>
-                <span className="absolute inset-0 bg-primary-foreground/10 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+                <motion.span
+                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-600/20"
+                  initial={{ x: "-100%" }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
               </Link>
             </Button>
           </motion.div>

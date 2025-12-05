@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowRight, Camera, Eye, X } from "lucide-react"
 import { AnimatedText } from "@/components/animated-text"
 import { ScrollReveal } from "@/components/scroll-reveal"
-import { FirebasePhotoGallery } from "@/components/firebase-photo-gallery"
+import { PageTransition } from "@/components/page-transition"
+import { PhotoBentoGrid } from "@/components/photo-bento-grid"
 import { initializeApp } from "firebase/app"
 import { getDatabase, ref, get, query, orderByChild, limitToLast } from "firebase/database"
 
@@ -29,10 +30,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const database = getDatabase(app)
 
+interface Photo {
+  id: string
+  title: string
+  image: string
+  location?: string
+  category?: string
+  description?: string
+  createdAt?: number
+}
+
 export default function PhotographyPage() {
-  const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [activeCategory, setActiveCategory] = useState("all")
-  const [featuredPhoto, setFeaturedPhoto] = useState(null)
+  const [featuredPhoto, setFeaturedPhoto] = useState<Photo | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -63,16 +74,23 @@ export default function PhotographyPage() {
   }, [])
 
   return (
-    <div className="flex flex-col gap-16 pb-16">
+    <PageTransition>
+      <div className="flex flex-col gap-16 pb-16">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-background to-muted pt-16 md:pt-24">
-        <div className="container flex flex-col items-center text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
+          <div className="absolute bottom-20 right-20 h-64 w-64 rounded-full bg-green-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
+        </div>
+        <div className="container relative z-10 flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">Nature Photography</h1>
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+              Nature <span className="gradient-text">Photography</span>
+            </h1>
           </motion.div>
 
           <AnimatedText
@@ -154,11 +172,9 @@ export default function PhotographyPage() {
             </ScrollReveal>
 
             <TabsContent value={activeCategory} className="mt-0">
-              <FirebasePhotoGallery
+              <PhotoBentoGrid
                 category={activeCategory === "all" ? undefined : activeCategory}
-                limit={6}
-                columns={3}
-                gap={6}
+                limit={8}
               />
             </TabsContent>
           </Tabs>
@@ -329,7 +345,8 @@ export default function PhotographyPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+      </div>
+    </PageTransition>
   )
 }
 
