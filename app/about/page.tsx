@@ -101,77 +101,75 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline Section */}
-      <section className="bg-muted py-16">
-        <div className="container">
-          <ScrollReveal>
-            <div className="flex flex-col items-center text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">My Journey</h2>
-              <p className="mt-4 max-w-[700px] text-muted-foreground">
-                The key milestones that have shaped my career and creative path
+{/* Timeline Section */}
+<section className="bg-muted py-16">
+  <div className="container">
+    <ScrollReveal>
+      <div className="flex flex-col items-center text-center">
+        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">My Journey</h2>
+        <p className="mt-4 max-w-[700px] text-muted-foreground">
+          A professional timeline highlighting my growth across game development, web leadership, and digital creativity.
+        </p>
+      </div>
+    </ScrollReveal>
+
+    <div className="mt-12 space-y-8">
+      {[
+        {
+          year: "2024 – Present",
+          title: "Game Developer — KanQi Studios",
+          description:
+            "Designing immersive game mechanics and player interactions. Collaborating with cross-functional teams to build and launch engaging game titles for diverse audiences.",
+        },
+        {
+          year: "2022 – Present",
+          title: "Web Director & Developer — Bayelsa Tech Hub",
+          description:
+            "Leading end-to-end website development, from launch to long-term maintenance. Focused on digital growth, performance optimization, security best practices, accessibility, and user experience.",
+        },
+        {
+          year: "2021 – Present",
+          title: "Digital Content Creator — Mobile Gaming (CODM)",
+          description:
+            "Creating and publishing gaming-focused video content within the Call of Duty: Mobile community, building engagement and contributing to the mobile gaming ecosystem.",
+        },
+        {
+          year: "2020 – Present",
+          title: "Freelance Web Developer",
+          description:
+            "Working with clients on responsive, performance-driven web applications. Specializing in optimization, engagement strategy, and scalable front-end solutions.",
+        },
+        {
+          year: "Ongoing",
+          title: "Creative Practice — Photography & Drumming",
+          description:
+            "Actively developing creative skills as a photographer and drummer, blending artistic expression with technical problem-solving and discipline.",
+        },
+      ].map((event, index) => (
+        <ScrollReveal key={index} delay={0.1 * index}>
+          <motion.div
+            className="flex flex-col gap-4 md:flex-row p-6 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
+            whileHover={{ scale: 1.01, x: 5 }}
+          >
+            <div className="flex-shrink-0 md:w-40">
+              <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 px-4 py-2 text-center font-bold text-primary shadow-md border border-primary/20">
+                {event.year}
+              </div>
+            </div>
+            <div className="relative border-l-2 border-primary/30 pl-6 md:border-l-0">
+              <div className="absolute -left-2 top-2 h-4 w-4 rounded-full bg-primary shadow-lg ring-2 ring-primary/20"></div>
+              <h3 className="text-xl font-bold transition-colors">{event.title}</h3>
+              <p className="mt-2 text-muted-foreground leading-relaxed">
+                {event.description}
               </p>
             </div>
-          </ScrollReveal>
+          </motion.div>
+        </ScrollReveal>
+      ))}
+    </div>
+  </div>
+</section>
 
-          <div className="mt-12 space-y-8">
-            {[
-              {
-                year: "2023",
-                title: "Senior Developer at Tech Innovations",
-                description:
-                  "Leading web and game development projects for major clients, focusing on immersive experiences and cutting-edge technologies.",
-              },
-              {
-                year: "2021",
-                title: "Published Photography Collection",
-                description:
-                  "Released 'Natural Wonders', a collection of nature photographs exhibited in galleries across the country.",
-              },
-              {
-                year: "2020",
-                title: "Game Developer at Interactive Studios",
-                description:
-                  "Developed multiple successful indie games using Unity and Unreal Engine, with a focus on innovative gameplay mechanics.",
-              },
-              {
-                year: "2018",
-                title: "Freelance Web Developer",
-                description:
-                  "Established my freelance business, working with clients globally on responsive web applications and e-commerce platforms.",
-              },
-              {
-                year: "2016",
-                title: "First Drumming Tour",
-                description:
-                  "Toured with the jazz ensemble 'Rhythm Collective', performing at venues and festivals across the country.",
-              },
-              {
-                year: "2015",
-                title: "Bachelor's Degree in Computer Science",
-                description: "Graduated with honors, specializing in interactive media and game development.",
-              },
-            ].map((event, index) => (
-              <ScrollReveal key={index} delay={0.1 * index}>
-                <motion.div 
-                  className="flex flex-col gap-4 md:flex-row p-6 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
-                  whileHover={{ scale: 1.01, x: 5 }}
-                >
-                  <div className="flex-shrink-0 md:w-32">
-                    <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 px-4 py-2 text-center font-bold text-primary shadow-md border border-primary/20">
-                      {event.year}
-                    </div>
-                  </div>
-                  <div className="relative border-l-2 border-primary/30 pl-6 md:border-l-0">
-                    <div className="absolute -left-2 top-2 h-4 w-4 rounded-full bg-primary shadow-lg ring-2 ring-primary/20"></div>
-                    <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{event.title}</h3>
-                    <p className="mt-2 text-muted-foreground leading-relaxed">{event.description}</p>
-                  </div>
-                </motion.div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Skills Section */}
       <section className="container">
