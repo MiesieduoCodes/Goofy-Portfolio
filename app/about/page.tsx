@@ -122,13 +122,13 @@ export default function AboutPage() {
             "Designing immersive game mechanics and player interactions. Collaborating with cross-functional teams to build and launch engaging game titles for diverse audiences.",
         },
         {
-          year: "2022 – Present",
+          year: "2022 – 2025",
           title: "Web Director & Developer — Bayelsa Tech Hub",
           description:
             "Leading end-to-end website development, from launch to long-term maintenance. Focused on digital growth, performance optimization, security best practices, accessibility, and user experience.",
         },
         {
-          year: "2021 – Present",
+          year: "2021 – 2024",
           title: "Digital Content Creator — Mobile Gaming (CODM)",
           description:
             "Creating and publishing gaming-focused video content within the Call of Duty: Mobile community, building engagement and contributing to the mobile gaming ecosystem.",
