@@ -1,36 +1,69 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
-import { AnimationProvider } from "@/components/animation-provider"
-
-const inter = Inter({ subsets: ["latin"] })
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "Miesieduo Veria | Developer & Drummer",
-  description: "Portfolio of Miesieduo Veria - Web Developer, Game Developer, Nature Photographer, and Drummer",
+  title: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
+  description: 'Multi-disciplinary creative professional based in Nigeria. Building scalable web apps, immersive games, and professional creative media. At the intersection of code, lens, and rhythm.',
+  keywords: 'web developer, game developer, photographer, drummer, Nigeria, creative, portfolio, Unity, React, TypeScript',
+  authors: [{ name: 'Miesieduo Veria' }],
+  creator: 'Miesieduo Veria',
+  publisher: 'Miesieduo Veria',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    title: 'Miesieduo Veria | Creative Developer',
+    description: 'Building scalable web apps, immersive games, and professional creative media. At the intersection of code, lens, and rhythm.',
+    siteName: 'Miesieduo Veria Portfolio',
+    images: [
+      {
+        url: '/hero-landscape.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Miesieduo Veria - Creative Developer',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Miesieduo Veria | Creative Developer',
+    description: 'Building scalable web apps, immersive games, and professional creative media.',
+    images: ['/hero-landscape.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'your-google-verification-code',
+  },
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AnimationProvider>
-            <div className="flex min-h-screen flex-col">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-          </AnimationProvider>
-        </ThemeProvider>
+    <html lang="en">
+      <body className="bg-background text-foreground antialiased">
+        {children}
       </body>
     </html>
   )

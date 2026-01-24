@@ -1,472 +1,278 @@
-"use client"
+import { MotionDiv } from "@/components/motion";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Music as MusicIcon, Play, Download, Headphones, Mic, Drum } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-import { useState, useRef } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, Play, Pause, Volume2, VolumeX } from "lucide-react"
-import { AnimatedText } from "@/components/animated-text"
-import { ScrollReveal } from "@/components/scroll-reveal"
-import { PageTransition } from "@/components/page-transition"
-import { Slider } from "@/components/ui/slider"
+const musicProjects = [
+  {
+    title: "Rhythms of the Niger",
+    description: "A fusion project blending traditional Nigerian rhythms with modern electronic production.",
+    genre: "World Fusion",
+    year: "2024",
+    duration: "3:45",
+  },
+  {
+    title: "Urban Pulse",
+    description: "Contemporary drum patterns for urban music production featuring complex polyrhythms.",
+    genre: "Hip-Hop/R&B",
+    year: "2024",
+    duration: "4:12",
+  },
+  {
+    title: "Cinematic Landscapes",
+    description: "Epic percussion compositions designed for film and game soundtracks.",
+    genre: "Cinematic",
+    year: "2023",
+    duration: "5:30",
+  },
+];
 
-// Drum performances data
-const performances = [
+const services = [
   {
-    id: 1,
-    title: "Live at The Blue Note",
-    date: "2023-08-15",
-    venue: "The Blue Note, New York",
-    description: "A jazz fusion performance with the John Smith Quartet.",
-    image: "/placeholder.svg?height=400&width=600",
-    audio: "/placeholder-audio.mp3",
+    icon: Mic,
+    title: "Session Drumming",
+    description: "Professional drum recording for your tracks with various styles and techniques.",
+    features: ["Live Recording", "Remote Sessions", "Multiple Genres", "High-Quality Audio"],
   },
   {
-    id: 2,
-    title: "Summer Festival",
-    date: "2023-07-04",
-    venue: "Central Park, New York",
-    description: "An outdoor performance featuring original compositions.",
-    image: "/placeholder.svg?height=400&width=600",
-    audio: "/placeholder-audio.mp3",
+    icon: Headphones,
+    title: "Music Production",
+    description: "Full production services from composition to final mixing and mastering.",
+    features: ["Beat Making", "Arrangement", "Mixing", "Mastering"],
   },
   {
-    id: 3,
-    title: "Studio Session",
-    date: "2023-06-10",
-    venue: "Skyline Studios, Los Angeles",
-    description: "Recording session for the upcoming album 'Rhythmic Journey'.",
-    image: "/placeholder.svg?height=400&width=600",
-    audio: "/placeholder-audio.mp3",
+    icon: MusicIcon,
+    title: "Sound Design",
+    description: "Custom sound effects and audio assets for games, films, and multimedia projects.",
+    features: ["Game Audio", "Film Scoring", "Sound Effects", "Foley"],
   },
-  {
-    id: 4,
-    title: "Collaboration with Sarah Johnson",
-    date: "2023-05-22",
-    venue: "The Fillmore, San Francisco",
-    description: "A special performance with acclaimed vocalist Sarah Johnson.",
-    image: "/placeholder.svg?height=400&width=600",
-    audio: "/placeholder-audio.mp3",
-  },
-]
+];
 
-// Drum kit components
-const drumKitParts = [
-  {
-    name: "Snare Drum",
-    description: 'Pearl Masters Maple Complete 14"x5.5" snare drum with die-cast hoops.',
-    image: "/placeholder.svg?height=300&width=300",
-  },
-  {
-    name: "Bass Drum",
-    description: 'Pearl Masters Maple Complete 22"x18" bass drum with EMAD batter head.',
-    image: "/placeholder.svg?height=300&width=300",
-  },
-  {
-    name: "Tom Toms",
-    description: 'Pearl Masters Maple Complete 10", 12", and 16" toms with Remo Emperor heads.',
-    image: "/placeholder.svg?height=300&width=300",
-  },
-  {
-    name: "Hi-Hat",
-    description: 'Zildjian K Custom 14" hi-hat cymbals with Pearl eliminator pedal.',
-    image: "/placeholder.svg?height=300&width=300",
-  },
-  {
-    name: "Ride Cymbal",
-    description: 'Zildjian K Custom 22" ride cymbal with complex overtones.',
-    image: "/placeholder.svg?height=300&width=300",
-  },
-  {
-    name: "Crash Cymbals",
-    description: 'Zildjian A Custom 16" and 18" crash cymbals for accents and transitions.',
-    image: "/placeholder.svg?height=300&width=300",
-  },
-]
+const equipment = [
+  "DW Collector's Series Drums",
+  "Zildjian K Custom Cymbals",
+  "Pearl Hardware",
+  "Shure SM57 & SM58 Mics",
+  "AKG C414 Condenser",
+  "Focusrite Scarlett Interface",
+  "Pro Tools & Logic Pro X",
+  "Superior Drummer 3",
+];
 
-export default function MusicPage() {
-  const [activeTab, setActiveTab] = useState("performances")
-  const [currentAudio, setCurrentAudio] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [volume, setVolume] = useState(0.8)
-  const audioRef = useRef<HTMLAudioElement>(null)
-
-  const handlePlayPause = (audioSrc: string) => {
-    if (currentAudio === audioSrc && isPlaying) {
-      audioRef.current?.pause()
-      setIsPlaying(false)
-    } else {
-      if (currentAudio !== audioSrc) {
-        setCurrentAudio(audioSrc)
-        if (audioRef.current) {
-          audioRef.current.src = audioSrc
-          audioRef.current.load()
-        }
-      }
-      audioRef.current?.play()
-      setIsPlaying(true)
-    }
-  }
-
-  const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0]
-    setVolume(newVolume)
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume
-    }
-    if (newVolume === 0) {
-      setIsMuted(true)
-    } else {
-      setIsMuted(false)
-    }
-  }
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.volume = volume
-        setIsMuted(false)
-      } else {
-        audioRef.current.volume = 0
-        setIsMuted(true)
-      }
-    }
-  }
-
+export default function Music() {
   return (
-    <PageTransition>
-      <div className="flex flex-col gap-16 pb-16">
-      {/* Hidden audio element */}
-      <audio ref={audioRef} onEnded={() => setIsPlaying(false)} src={currentAudio || undefined} />
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 right-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-20 left-20 h-64 w-64 rounded-full bg-pink-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
-        </div>
-        <div className="container relative z-10 flex flex-col items-center text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="pt-24">
+        {/* Hero Section */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
           >
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-              Music & <span className="gradient-text">Drumming</span>
+            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
+              <span className="text-gradient">Music</span> Production
             </h1>
-          </motion.div>
-
-          <AnimatedText
-            text="Creating rhythms and beats that move people and enhance musical experiences"
-            className="mt-4 max-w-[700px] text-lg text-muted-foreground md:text-xl"
-            delay={0.5}
-          />
-        </div>
-      </section>
-
-      {/* Featured Video */}
-      <section className="container">
-        <ScrollReveal>
-          <div className="flex flex-col items-center text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Featured Performance</h2>
-            <p className="mt-4 max-w-[700px] text-muted-foreground">
-              Watch my latest drum performance at the Jazz Festival
+            <p className="text-lg text-muted-foreground mb-8">
+              Rhythm is the foundation of all great music. As a drummer and producer, 
+              I bring percussive expertise to every project, creating compelling rhythmic 
+              landscapes for artists, games, and media productions.
             </p>
-          </div>
-        </ScrollReveal>
-
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          viewport={{ once: true }}
-          className="mt-8 overflow-hidden rounded-lg border"
-        >
-          <div className="relative aspect-video w-full bg-muted">
-            <div className="flex h-full w-full items-center justify-center">
-              <p className="text-muted-foreground">Video player placeholder</p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button variant="hero" size="lg">
+                <Play className="w-4 h-4 mr-2" />
+                Listen to Demo Reel
+              </Button>
+              <Button variant="heroOutline" size="lg" asChild>
+                <Link href="/contact">Book a Session</Link>
+              </Button>
             </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground"
+          </MotionDiv>
+        </section>
+
+        {/* Featured Projects */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Featured <span className="text-gradient">Projects</span>
+            </h2>
+            <p className="text-muted-foreground">
+              Recent collaborations and original productions showcasing my musical range.
+            </p>
+          </MotionDiv>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {musicProjects.map((project, index) => (
+              <MotionDiv
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="group"
               >
-                <Play className="h-8 w-8" />
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Tabs Section */}
-      <section className="container">
-        <Tabs defaultValue="performances" value={activeTab} onValueChange={setActiveTab}>
-          <ScrollReveal>
-            <TabsList className="mb-8 w-full justify-start overflow-auto">
-              <TabsTrigger value="performances">Performances</TabsTrigger>
-              <TabsTrigger value="equipment">Equipment</TabsTrigger>
-              <TabsTrigger value="influences">Influences</TabsTrigger>
-            </TabsList>
-          </ScrollReveal>
-
-          {/* Performances Tab */}
-          <TabsContent value="performances" className="mt-0">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {performances.map((performance, index) => (
-                <ScrollReveal key={performance.id} delay={0.1 * index}>
-                  <motion.div
-                    whileHover={{ scale: 1.02, y: -5 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card className="group overflow-hidden border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-                      <div className="aspect-video overflow-hidden relative">
-                        <Image
-                          src={performance.image || "/placeholder.svg"}
-                          alt={performance.title}
-                          width={600}
-                          height={400}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      </div>
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{performance.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {performance.venue} • {new Date(performance.date).toLocaleDateString()}
-                        </p>
-                        <p className="mt-2 leading-relaxed">{performance.description}</p>
-
-                      <div className="mt-4 flex items-center gap-4">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handlePlayPause(performance.audio)}
-                          className="h-10 w-10 rounded-full"
-                        >
-                          {currentAudio === performance.audio && isPlaying ? (
-                            <Pause className="h-5 w-5" />
-                          ) : (
-                            <Play className="h-5 w-5" />
-                          )}
-                        </Button>
-
-                        <div className="flex flex-1 items-center gap-2">
-                          <Button variant="ghost" size="icon" onClick={toggleMute} className="h-8 w-8">
-                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                          </Button>
-                          <Slider
-                            value={[isMuted ? 0 : volume]}
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            onValueChange={handleVolumeChange}
-                            className="w-24"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  </motion.div>
-                </ScrollReveal>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Equipment Tab */}
-          <TabsContent value="equipment" className="mt-0">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {drumKitParts.map((part, index) => (
-                <ScrollReveal key={part.name} delay={0.1 * index}>
-                  <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card className="group overflow-hidden border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-                      <div className="aspect-square overflow-hidden relative">
-                        <Image
-                          src={part.image || "/placeholder.svg"}
-                          alt={part.name}
-                          width={300}
-                          height={300}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      </div>
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{part.name}</h3>
-                        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{part.description}</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </ScrollReveal>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Influences Tab */}
-          <TabsContent value="influences" className="mt-0">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {[
-                {
-                  name: "Tony Williams",
-                  description:
-                    "Revolutionary jazz drummer known for his work with Miles Davis and his innovative approach to rhythm.",
-                  image: "/placeholder.svg?height=400&width=400",
-                },
-                {
-                  name: "Buddy Rich",
-                  description: "Legendary drummer known for his incredible technique, speed, and showmanship.",
-                  image: "/placeholder.svg?height=400&width=400",
-                },
-                {
-                  name: "Steve Gadd",
-                  description: "Versatile session drummer known for his precise grooves and influential patterns.",
-                  image: "/placeholder.svg?height=400&width=400",
-                },
-                {
-                  name: "Vinnie Colaiuta",
-                  description:
-                    "Technical virtuoso known for his work with Frank Zappa and Sting, and his complex polyrhythms.",
-                  image: "/placeholder.svg?height=400&width=400",
-                },
-              ].map((influence, index) => (
-                <ScrollReveal key={influence.name} delay={0.1 * index}>
-                  <motion.div
-                    whileHover={{ scale: 1.02, y: -5 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card className="group overflow-hidden border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-                      <div className="grid grid-cols-1 md:grid-cols-3">
-                        <div className="aspect-square md:col-span-1 relative overflow-hidden">
-                          <Image
-                            src={influence.image || "/placeholder.svg"}
-                            alt={influence.name}
-                            width={400}
-                            height={400}
-                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </div>
-                        <CardContent className="p-6 md:col-span-2">
-                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{influence.name}</h3>
-                          <p className="mt-2 leading-relaxed">{influence.description}</p>
-                        </CardContent>
-                      </div>
-                    </Card>
-                  </motion.div>
-                </ScrollReveal>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </section>
-
-      {/* Upcoming Performances */}
-      <section className="bg-muted py-16">
-        <div className="container">
-          <ScrollReveal>
-            <div className="flex flex-col items-center text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Upcoming Performances</h2>
-              <p className="mt-4 max-w-[700px] text-muted-foreground">Catch me live at these upcoming events</p>
-            </div>
-          </ScrollReveal>
-
-          <div className="mt-12 space-y-6">
-            {[
-              {
-                date: "2023-12-15",
-                venue: "Blue Note Jazz Club",
-                location: "New York, NY",
-                time: "8:00 PM",
-                ticketLink: "#",
-              },
-              {
-                date: "2024-01-20",
-                venue: "The Jazz Gallery",
-                location: "New York, NY",
-                time: "7:30 PM",
-                ticketLink: "#",
-              },
-              {
-                date: "2024-02-10",
-                venue: "SF Jazz Center",
-                location: "San Francisco, CA",
-                time: "8:00 PM",
-                ticketLink: "#",
-              },
-            ].map((event, index) => (
-              <ScrollReveal key={index} delay={0.1 * index}>
-                <motion.div
-                  whileHover={{ scale: 1.02, x: 5 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-                    <CardContent className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
-                    <div>
-                      <div className="text-sm font-medium text-primary">
-                        {new Date(event.date).toLocaleDateString(undefined, {
-                          weekday: "long",
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </div>
-                      <h3 className="text-xl font-bold">{event.venue}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {event.location} • {event.time}
-                      </p>
+                <div className="glass rounded-xl p-6 card-hover">
+                  {/* Audio Player Placeholder */}
+                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg mb-6 flex items-center justify-center">
+                    <div className="text-center">
+                      <Play className="w-12 h-12 text-primary mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Click to play</p>
                     </div>
-                    <Button asChild>
-                      <Link href={event.ticketLink}>
-                        Get Tickets
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
+                  </div>
+
+                  {/* Project Info */}
+                  <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
+                    {project.title}
+                  </h3>
+                  
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {project.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="tech-tag">{project.genre}</span>
+                    <span>{project.duration}</span>
+                  </div>
+                  
+                  <div className="mt-4 flex gap-2">
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Play className="w-3 h-3 mr-1" />
+                      Play
                     </Button>
-                  </CardContent>
-                </Card>
-                </motion.div>
-              </ScrollReveal>
+                    <Button variant="ghost" size="sm" className="flex-1">
+                      <Download className="w-3 h-3 mr-1" />
+                      Download
+                    </Button>
+                  </div>
+                </div>
+              </MotionDiv>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="container">
-        <Card className="border-none bg-gradient-to-r from-primary/20 to-primary/5">
-          <CardContent className="flex flex-col items-center gap-4 p-8 text-center sm:p-12">
-            <ScrollReveal>
-              <h2 className="text-2xl font-bold sm:text-3xl">Interested in Collaboration?</h2>
-              <p className="max-w-[600px] text-muted-foreground">
-                I'm always open to new musical collaborations and performance opportunities. Let's create something
-                amazing together!
-              </p>
-            </ScrollReveal>
+        {/* Services Section */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Music <span className="text-gradient">Services</span>
+            </h2>
+            <p className="text-muted-foreground">
+              Professional music services tailored to your project needs.
+            </p>
+          </MotionDiv>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <Button size="lg" asChild className="mt-4">
-                <Link href="/contact">
-                  Get in Touch
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+          <div className="grid md:grid-cols-3 gap-6">
+            {services.map((service, index) => (
+              <MotionDiv
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div className="glass rounded-xl p-6 h-full card-hover">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <service.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  
+                  <h3 className="font-semibold text-lg mb-3">{service.title}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
+                  
+                  <ul className="space-y-1">
+                    {service.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="text-xs text-muted-foreground flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-primary"></div>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </MotionDiv>
+            ))}
+          </div>
+        </section>
+
+        {/* Equipment Section */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Studio <span className="text-gradient">Equipment</span>
+            </h2>
+            <p className="text-muted-foreground">
+              Professional-grade gear for pristine audio quality and production excellence.
+            </p>
+          </MotionDiv>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {equipment.map((item, index) => (
+              <MotionDiv
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.05 }}
+                viewport={{ once: true }}
+                className="glass rounded-lg p-4 text-center"
+              >
+                <Drum className="w-6 h-6 text-primary mx-auto mb-2" />
+                <p className="text-sm font-medium">{item}</p>
+              </MotionDiv>
+            ))}
+          </div>
+        </section>
+
+        {/* Collaboration Section */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Let's Create <span className="text-gradient">Together</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
+              Whether you need drum tracks for your next album, sound design for your game, 
+              or a full production for your project, I'm here to bring rhythmic excellence to your vision.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link href="/contact">
+                <Button variant="hero" size="lg">
+                  Start Collaboration
+                </Button>
+              </Link>
+              <Button variant="heroOutline" size="lg">
+                <Download className="w-4 h-4 mr-2" />
+                Download Press Kit
               </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </section>
-      </div>
-    </PageTransition>
-  )
+            </div>
+          </MotionDiv>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
 }
-
