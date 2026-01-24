@@ -69,7 +69,7 @@ export function WhatIDo() {
           transition={{ duration: 0.6 }}
           className="mb-16"
         >
-          <span className="section-label">01 / What I Do</span>
+          <span className="section-label text-xl">01 / What I Do</span>
         </motion.div>
 
         {/* Service Cards */}
@@ -90,17 +90,17 @@ export function WhatIDo() {
                 className="group block p-6 rounded-xl border border-border bg-card card-hover h-full"
               >
                 {/* Icon */}
-                <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-colors">
+                <div className="w-15 h-12 rounded-lg bg-secondary flex items-center justify-center mb-5 group-hover:bg-primary/10 transition-colors">
                   <service.icon className="w-6 h-6 text-primary" />
                 </div>
 
                 {/* Title */}
-                <h3 className="font-display text-lg font-semibold mb-3 group-hover:text-primary transition-colors">
+                <h3 className="font-display text-2xl font-semibold mb-3 group-hover:text-primary transition-colors">
                   {service.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-xl text-muted-foreground leading-relaxed">
                   {service.description}
                 </p>
               </Link>

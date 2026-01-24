@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Gamepad2, Code, Camera, Music, Download, Mail, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
 const skills = {
   development: ["React / Next.js", "C# / Unity", "Tailwind CSS"],
@@ -49,23 +50,32 @@ export default function About() {
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Portrait */}
             <MotionDiv
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="relative"
             >
-              <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 border border-border">
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-6xl font-bold text-primary/20">MV</div>
+              <div className="relative">
+                <div className="absolute bottom-4 left-4 hidden lg:block bg-primary/20 rounded-2xl px-3 py-2 text-lg font-bold text-primary animate-pulse">Miesiedudo Veria</div>
+                <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 border border-border">
+                  <div className="w-full h-full flex items-center justify-center relative">
+                    <Image
+                      src="/IMG_6959.JPG"
+                      alt="Miesiedudo Veria"
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-green-500/20 mix-blend-overlay"></div>
+                  </div>
                 </div>
               </div>
             </MotionDiv>
 
             {/* Content */}
             <MotionDiv
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut", delay: 0.1 }}
               className="space-y-6"
             >
               <div>
@@ -94,9 +104,9 @@ export default function About() {
         {/* Skills Section */}
         <section className="container-custom py-16">
           <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
@@ -112,9 +122,9 @@ export default function About() {
             {Object.entries(skills).map(([category, items], index) => (
               <MotionDiv
                 key={category}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.05 }}
                 viewport={{ once: true }}
                 className="glass rounded-xl p-6 card-hover"
               >
@@ -137,9 +147,9 @@ export default function About() {
         {/* Experience Timeline */}
         <section className="container-custom py-16">
           <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
@@ -151,17 +161,28 @@ export default function About() {
             </p>
           </MotionDiv>
 
-          <div className="relative">
-            {/* Timeline Line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-px h-full bg-border"></div>
+          <div className="relative min-h-[400px]">
+            {/* Timeline Line with Years */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-border">
+              {/* Year Markers */}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 whitespace-nowrap">
+                <div className="text-xs font-medium text-primary bg-background px-2 py-1 border border-border rounded">2024</div>
+              </div>
+              <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-2 whitespace-nowrap">
+                <div className="text-xs font-medium text-muted-foreground bg-background px-2 py-1 border border-border rounded">2021</div>
+              </div>
+              <div className="absolute top-2/3 left-1/2 transform -translate-x-1/2 -translate-y-2 whitespace-nowrap">
+                <div className="text-xs font-medium text-muted-foreground bg-background px-2 py-1 border border-border rounded">2018</div>
+              </div>
+            </div>
 
             <div className="space-y-12">
               {experiences.map((exp, index) => (
                 <MotionDiv
                   key={index}
-                  initial={{ opacity: 0, x: exp.align === "left" ? -50 : 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.1 }}
                   viewport={{ once: true }}
                   className={`relative flex items-center ${
                     exp.align === "left" ? "justify-start" : "justify-end"
@@ -191,9 +212,9 @@ export default function About() {
         {/* CTA Section */}
         <section className="container-custom py-16">
           <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             viewport={{ once: true }}
             className="text-center"
           >

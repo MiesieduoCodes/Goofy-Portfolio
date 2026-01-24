@@ -33,8 +33,8 @@ export default function Home() {
 
     const preludeTimeout = setTimeout(() => {
       setShowPrelude(false)
-      setTimeout(() => setShowMainContent(true), 500)
-    }, 6000)
+      setTimeout(() => setShowMainContent(true), 300)
+    }, 4000)
 
     return () => {
       clearInterval(textInterval)

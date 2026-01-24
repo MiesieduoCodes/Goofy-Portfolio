@@ -33,7 +33,7 @@ export function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "glass py-3" : "bg-transparent py-7"
+        isScrolled ? "glass py-4 " : "bg-transparent py-7"
       }`}
     >
       <nav className="container-custom flex items-center justify-between">
@@ -53,13 +53,14 @@ export function Navbar() {
             <Link
               key={link.name}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-foreground ${
+              className={`relative text-sm font-medium transition-colors hover:text-foreground group ${
                 pathname === link.href
                   ? "text-foreground"
                   : "text-muted-foreground"
               }`}
             >
               {link.name}
+              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
             </Link>
           ))}
         </div>

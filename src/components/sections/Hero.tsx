@@ -31,7 +31,7 @@ export function Hero() {
           className="max-w-5xl mx-auto"
         >
           {/* Headline */}
-          <h1 className="font-display text-6xl md:text-8xl lg:text-9xl font-bold leading-tight mb-8">
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8">
             Crafting Digital Worlds &{" "}
             <span className="text-gradient italic">Sonic Landscapes</span>
           </h1>
@@ -41,7 +41,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12"
+            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-6"
           >
             At the intersection of code, lens, and rhythm. Building scalable web
             apps, immersive games, and professional creative media.

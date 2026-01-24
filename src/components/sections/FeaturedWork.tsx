@@ -59,7 +59,7 @@ export function FeaturedWork() {
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12"
         >
           <div>
-            <span className="section-label">02 / Featured Work</span>
+            <span className="section-label text-xl">02 / Featured Work</span>
             <h2 className="font-display text-3xl md:text-4xl font-bold mt-3">
               Digital Artifacts
             </h2>

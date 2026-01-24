@@ -1,7 +1,7 @@
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Mail, Phone, MapPin, Send, Github, Linkedin, Twitter } from "lucide-react";
+import { Mail, Phone, MapPin, Send, X, Linkedin, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -9,14 +9,14 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@miesieduo.veria",
-    href: "mailto:hello@miesieduo.veria",
+    value: "miesieduoveria@gmail.com",
+    href: "mailto:miesieduoveria@gmail.com",
   },
   {
     icon: Phone,
     label: "Phone",
-    value: "+234 XXX XXX XXXX",
-    href: "tel:+234XXXXXXXXXX",
+    value: "+234 906 046 2206",
+    href: "tel:+2349060462206",
   },
   {
     icon: MapPin,
@@ -38,7 +38,7 @@ const socialLinks = [
     label: "LinkedIn",
   },
   {
-    icon: Twitter,
+    icon: X,
     href: "https://twitter.com/miesieduo",
     label: "Twitter",
   },
