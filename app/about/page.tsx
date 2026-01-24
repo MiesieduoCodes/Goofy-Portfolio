@@ -1,3 +1,5 @@
+"use client";
+
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -5,6 +7,7 @@ import { Gamepad2, Code, Camera, Music, Download, Mail, Briefcase } from "lucide
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 
 const skills = {
   development: ["React / Next.js", "C# / Unity", "Tailwind CSS"],
@@ -17,30 +20,35 @@ const experiences = [
   {
     role: "Web Director",
     company: "Bayelsa Tech Hub",
-    period: "2021 - Present",
+    period: "2021 - 2025",
     description: "Strategic oversight of the hub's web ecosystem. Led full-stack architecture for state-level digital initiatives and mentored 50+ junior developers.",
+    details: "Spearheaded the development of 9+ enterprise web applications using React, Next.js, and Node.js. Implemented CI/CD pipelines that reduced deployment time by 60%. Established coding standards and conducted regular code reviews. Led a team of 8 developers in migrating legacy systems to modern microservices architecture.",
     icon: Briefcase,
     align: "right",
   },
   {
-    role: "Senior Game Developer",
+    role: "Junior Game Developer",
     company: "KanQi Studios",
-    period: "2018 - 2021",
+    period: "2024 - Present",
     description: "Focused on high-performance C# mechanics and interactive narrative systems. Optimized rendering pipelines for mobile platforms.",
+    details: "Developed 2 successful mobile games with 100 combined downloads. Created custom Unity plugins for enhanced performance. Implemented advanced AI systems for NPC behavior. Optimized game performance achieving 60fps on mid-range devices. Collaborated with design team to prototype and iterate on gameplay mechanics.",
     icon: Gamepad2,
     align: "left",
   },
   {
     role: "Content Creator",
     company: "Independent Freelance",
-    period: "Ongoing",
+    period: "2022 - Present",
     description: "Delivering high-end commercial photography and video productions. Bridging technical prowess with artistic vision for global brands.",
+    details: "Produced content for companies including Faven LP and Helen View and Apartments. Directed and edited 20+ commercial videos. Developed expertise in drone cinematography and 360° photography. Built a client portfolio . Created educational content on photography techniques.",
     icon: Camera,
     align: "right",
   },
 ];
 
 export default function About() {
+  const [hoveredExperience, setHoveredExperience] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -56,16 +64,23 @@ export default function About() {
               className="relative"
             >
               <div className="relative">
-                <div className="absolute bottom-4 left-4 hidden lg:block bg-primary/20 rounded-2xl px-3 py-2 text-lg font-bold text-primary animate-pulse">Miesiedudo Veria</div>
                 <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 border border-border">
                   <div className="w-full h-full flex items-center justify-center relative">
                     <Image
                       src="/IMG_6959.JPG"
-                      alt="Miesiedudo Veria"
+                      alt="Miesieduo Veria"
                       fill
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-green-500/20 mix-blend-overlay"></div>
+                    
+                    {/* Pulsating background layer */}
+                    <div className="absolute bottom-4 left-4 bg-green-500 rounded-2xl animate-pulse h-12"></div>
+                    
+                    {/* Text layer with stable background */}
+                    <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-2xl px-3 py-2 flex items-center justify-center">
+                      <span className="text-lg font-bold text-white">Miesieduo Veria</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -82,10 +97,19 @@ export default function About() {
                 <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
                   About <span className="text-gradient">Miesieduo Veria</span>
                 </h1>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  Multi-disciplinary creative professional based in Nigeria, operating at the intersection of code, lens, and rhythm. 
-                  I build scalable web applications, immersive gaming experiences, and professional creative media that bridges technical 
+                
+                <p className="text-lg text-muted-foreground leading-relaxed mb-4">
+                  Multi-disciplinary creative professional based in Nigeria, operating at the intersection of code, lens, and rhythm.
+                </p>
+
+                <p className="text-lg text-muted-foreground leading-relaxed mb-4">
+                  I build scalable web applications, immersive gaming experiences, and professional creative media that bridges technical
                   excellence with artistic vision.
+                </p>
+
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  When I'm not coding or designing, you can find me exploring nature with my camera, or behind a drum kit creating rhythms.
+                  This diverse set of interests fuels my creativity and problem-solving approach.
                 </p>
               </div>
 
@@ -193,7 +217,11 @@ export default function About() {
 
                   {/* Content Card */}
                   <div className={`w-full lg:w-5/12 ${exp.align === "left" ? "pr-8 text-right" : "pl-8"}`}>
-                    <div className="glass rounded-xl p-6 card-hover">
+                    <div 
+                      className="glass rounded-xl p-6 card-hover cursor-pointer transition-all duration-300"
+                      onMouseEnter={() => setHoveredExperience(exp.role)}
+                      onMouseLeave={() => setHoveredExperience(null)}
+                    >
                       <div className={`flex items-center gap-3 mb-3 ${exp.align === "left" ? "justify-end" : ""}`}>
                         <exp.icon className="w-5 h-5 text-primary" />
                         <h3 className="font-semibold text-lg">{exp.role}</h3>
@@ -201,6 +229,16 @@ export default function About() {
                       <p className="text-primary font-medium mb-2">{exp.company}</p>
                       <p className="text-sm text-muted-foreground mb-3">{exp.period}</p>
                       <p className="text-sm text-muted-foreground">{exp.description}</p>
+                    </div>
+                    
+                    {/* Expandable Details */}
+                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                      hoveredExperience === exp.role ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
+                    }`}>
+                      <div className="glass rounded-xl p-6 border-2 border-primary/20 bg-primary/5">
+                        <h4 className="font-semibold text-primary mb-3">Key Achievements & Responsibilities</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{exp.details}</p>
+                      </div>
                     </div>
                   </div>
                 </MotionDiv>

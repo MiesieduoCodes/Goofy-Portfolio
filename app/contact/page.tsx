@@ -61,7 +61,7 @@ export default function Contact() {
               Get In <span className="text-gradient">Touch</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Ready to start your next project? Let's discuss how we can bring your ideas to life 
+              Ready to start your next project? Let's discuss how I can bring your ideas to life 
               with technical excellence and creative innovation.
             </p>
           </MotionDiv>

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Github, Linkedin, Instagram, Twitter, Zap } from "lucide-react";
+import { Github, Linkedin, Instagram, X, Zap } from "lucide-react";
 
 const socialLinks = [
   { name: "GitHub", href: "https://github.com", icon: Github },
   { name: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
   { name: "Instagram", href: "https://instagram.com", icon: Instagram },
-  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
+  { name: "Twitter", href: "https://twitter.com", icon: X },
 ];
 
 const footerLinks = [
