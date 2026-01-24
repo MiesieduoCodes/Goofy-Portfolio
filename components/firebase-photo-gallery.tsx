@@ -62,7 +62,7 @@ export function FirebasePhotoGallery({
         if (snapshot.exists()) {
           // Convert to array and format for PhotoGallery
           const photosData = snapshot.val()
-          let fetchedPhotos = Object.entries(photosData).map(([id, data]) => {
+          let fetchedPhotos = Object.entries(photosData).map(([id, data]: [string, any]) => {
             return {
               id,
               src: data.image,

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { name: "Work", href: "/work" },
@@ -17,6 +18,20 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,42 +87,91 @@ export function Navbar() {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 text-foreground"
+          className="md:hidden p-2 text-foreground relative w-8 h-8 flex items-center justify-center"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <div className="relative w-6 h-6 flex items-center justify-center">
+            {/* Hamburger Icon */}
+            <motion.div
+              animate={{
+                opacity: isMobileMenuOpen ? 0 : 1,
+                scale: isMobileMenuOpen ? 0.8 : 1
+              }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="absolute inset-0 flex flex-col justify-center gap-1"
+            >
+              <div className="w-6 h-0.5 bg-current"></div>
+              <div className="w-6 h-0.5 bg-current"></div>
+              <div className="w-6 h-0.5 bg-current"></div>
+            </motion.div>
+            
+            {/* X Icon */}
+            <motion.div
+              animate={{
+                opacity: isMobileMenuOpen ? 1 : 0,
+                scale: isMobileMenuOpen ? 1 : 0.8
+              }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <X className="w-6 h-6" />
+            </motion.div>
+          </div>
         </button>
       </nav>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div
-          className={`md:hidden absolute top-full left-0 right-0 bg-background border-t border-border transition-all duration-300 ${
-            isScrolled ? "glass" : "bg-background/95 backdrop-blur-sm"
-          }`}
-        >
-          <div className="container-custom py-6 flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <div key={link.name}>
-                <Link
-                  href={link.href}
-                  className={`block text-lg font-medium py-2 ${
-                    pathname === link.href
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  }`}
+      {/* Mobile Menu - Full Screen Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: "-100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "-100%" }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed inset-0 z-50 bg-gradient-to-br from-background via-background to-primary/5 backdrop-blur-lg md:hidden"
+          >
+            <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-8">
+              {navLinks.map((link, index) => (
+                <motion.div
+                  key={link.name}
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.1, ease: "easeOut", delay: index * 0.05 }}
                 >
-                  {link.name}
-                </Link>
-              </div>
-            ))}
-            <Button variant="hero" size="lg" className="mt-4" asChild>
-              <Link href="/contact">Contact Me</Link>
-            </Button>
-          </div>
-        </div>
-      )}
+                  <Link
+                    href={link.href}
+                    className={`text-2xl font-bold ${
+                      pathname === link.href
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                </motion.div>
+              ))}
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.1, ease: "easeOut", delay: 0.2 }}
+              >
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  className="mt-8" 
+                  asChild
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Link href="/contact">Contact Me</Link>
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
