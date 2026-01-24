@@ -5,9 +5,7 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_SITE_URL": {
-      "description": "The public URL of your site"
-    }
+    "NEXT_PUBLIC_SITE_URL": "https://your-domain.vercel.app"
   },
   "headers": [
     {
