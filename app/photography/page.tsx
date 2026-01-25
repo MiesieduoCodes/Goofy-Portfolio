@@ -4,6 +4,9 @@ import { Footer } from "@/components/layout/Footer";
 import { Camera, Eye, Download, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { database } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
 
 const photographyCategories = [
   {
@@ -57,6 +60,22 @@ const featuredPhotos = [
 ];
 
 export default function Photography() {
+  const [photos, setPhotos] = useState<any[]>([])
+
+  // Load photos from Firebase
+  useEffect(() => {
+    const photosRef = ref(database, "photos")
+    onValue(photosRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const photosList = Object.entries(data).map(([id, item]: [string, any]) => ({
+          id,
+          ...item
+        }))
+        setPhotos(photosList)
+      }
+    })
+  }, [])
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

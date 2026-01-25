@@ -14,6 +14,9 @@ import {
   Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { database } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
 
 const services = [
   {
@@ -70,6 +73,22 @@ const expertise = [
 ];
 
 export default function Services() {
+  const [services, setServices] = useState<any[]>([])
+
+  // Load services from Firebase (using techs collection for services)
+  useEffect(() => {
+    const servicesRef = ref(database, "techs")
+    onValue(servicesRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const servicesList = Object.entries(data).map(([id, item]: [string, any]) => ({
+          id,
+          ...item
+        }))
+        setServices(servicesList)
+      }
+    })
+  }, [])
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

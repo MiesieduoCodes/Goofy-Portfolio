@@ -10,35 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Edit, Trash2, Save, X, Globe, Gamepad2, Code, Camera, Wrench } from "lucide-react"
+import { database } from "@/lib/firebase"
+import { ref, push, set, onValue, remove, update } from "firebase/database"
 import { PageTransition } from "@/components/page-transition"
 import { ScrollReveal } from "@/components/scroll-reveal"
-import { initializeApp } from "firebase/app"
-import { getDatabase, ref, push, set, onValue, remove, update } from "firebase/database"
-
-// Firebase configuration - only initialize if config exists
-let app: any = null
-let database: any = null
-
-try {
-  const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID 
-      ? `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`
-      : undefined,
-  }
-
-  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-    app = initializeApp(firebaseConfig)
-    database = getDatabase(app)
-  }
-} catch (error) {
-  console.warn("Firebase not configured. Admin features will be limited.")
-}
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("websites")

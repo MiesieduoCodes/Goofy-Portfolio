@@ -9,6 +9,9 @@ import { ScrollReveal } from "@/components/scroll-reveal"
 import { ProjectCard } from "@/components/project-card"
 import { PageTransition } from "@/components/page-transition"
 import dynamic from "next/dynamic"
+import { useState, useEffect } from "react"
+import { database } from "@/lib/firebase"
+import { ref, onValue } from "firebase/database"
 
 // Use dynamic import with SSR disabled for Three.js component
 const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcase"), {
@@ -24,6 +27,22 @@ const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcas
 })
 
 export default function GamesPage() {
+  const [games, setGames] = useState<any[]>([])
+
+  // Load games from Firebase
+  useEffect(() => {
+    const gamesRef = ref(database, "games")
+    onValue(gamesRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const gamesList = Object.entries(data).map(([id, item]: [string, any]) => ({
+          id,
+          ...item
+        }))
+        setGames(gamesList)
+      }
+    })
+  }, [])
   return (
     <PageTransition>
       <div className="flex flex-col gap-16 pb-16">

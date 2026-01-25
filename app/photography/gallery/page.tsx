@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,9 +8,27 @@ import { AnimatedText } from "@/components/animated-text"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { PageTransition } from "@/components/page-transition"
 import { PhotoBentoGrid } from "@/components/photo-bento-grid"
+import { database } from "@/lib/firebase"
+import { ref, onValue } from "firebase/database"
 
 export default function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState("all")
+  const [photos, setPhotos] = useState<any[]>([])
+
+  // Load photos from Firebase
+  useEffect(() => {
+    const photosRef = ref(database, "photos")
+    onValue(photosRef, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const photosList = Object.entries(data).map(([id, item]: [string, any]) => ({
+          id,
+          ...item
+        }))
+        setPhotos(photosList)
+      }
+    })
+  }, [])
 
   return (
     <PageTransition>
