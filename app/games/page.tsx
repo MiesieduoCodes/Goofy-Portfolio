@@ -101,59 +101,17 @@ export default function GamesPage() {
         </ScrollReveal>
 
         <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <ProjectCard
-            title="Adventure Quest"
-            description="A 3D adventure game with puzzle-solving mechanics and immersive storytelling."
-            image="/placeholder.svg?height=400&width=600"
-            tags={["Unity", "C#", "3D Modeling"]}
-            link="/games/adventure-quest"
-            delay={0.1}
-          />
-
-          <ProjectCard
-            title="Space Shooter"
-            description="A fast-paced arcade-style space shooter with procedurally generated levels."
-            image="/placeholder.svg?height=400&width=600"
-            tags={["Unreal Engine", "Blueprint", "Game Design"]}
-            link="/games/space-shooter"
-            delay={0.2}
-          />
-
-          <ProjectCard
-            title="Puzzle Master"
-            description="A mobile puzzle game that challenges players with increasingly difficult levels."
-            image="/placeholder.svg?height=400&width=600"
-            tags={["Unity", "C#", "Mobile Development"]}
-            link="/games/puzzle-master"
-            delay={0.3}
-          />
-
-          <ProjectCard
-            title="Fantasy RPG"
-            description="An immersive role-playing game set in a fantasy world with rich lore and characters."
-            image="/placeholder.svg?height=400&width=600"
-            tags={["Godot", "GDScript", "Pixel Art"]}
-            link="/games/fantasy-rpg"
-            delay={0.4}
-          />
-
-          <ProjectCard
-            title="Racing Simulator"
-            description="A realistic racing simulator with advanced physics and multiple tracks."
-            image="/placeholder.svg?height=400&width=600"
-            tags={["Unity", "C#", "Physics Simulation"]}
-            link="/games/racing-simulator"
-            delay={0.5}
-          />
-
-          <ProjectCard
-            title="VR Experience"
-            description="An interactive virtual reality experience that showcases immersive storytelling."
-            image="/placeholder.svg?height=400&width=600"
-            tags={["Unity", "C#", "VR Development"]}
-            link="/games/vr-experience"
-            delay={0.6}
-          />
+          {games.map((game, index) => (
+            <ProjectCard
+              key={game.id}
+              title={game.title}
+              description={game.description}
+              image={game.image}
+              tags={Array.isArray(game.tags) ? game.tags : (game.tags ? game.tags.split(',').map((tag: string) => tag.trim()) : [])}
+              link={game.link || `/games/${game.title.toLowerCase().replace(/\s+/g, '-')}`}
+              delay={index * 0.1}
+            />
+          ))}
         </div>
       </section>
 

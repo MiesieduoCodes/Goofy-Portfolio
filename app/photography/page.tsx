@@ -1,3 +1,5 @@
+"use client"
+
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -126,9 +128,9 @@ export default function Photography() {
           </MotionDiv>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredPhotos.map((photo, index) => (
+            {photos.slice(0, 6).map((photo, index) => (
               <MotionDiv
-                key={index}
+                key={photo.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -138,9 +140,17 @@ export default function Photography() {
                 <div className="glass rounded-xl overflow-hidden card-hover">
                   {/* Photo */}
                   <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Camera className="w-12 h-12 text-primary/30" />
-                    </div>
+                    {photo.image ? (
+                      <img 
+                        src={photo.image} 
+                        alt={photo.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Camera className="w-12 h-12 text-primary/30" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
                       <Eye className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300" />
                     </div>
@@ -148,31 +158,27 @@ export default function Photography() {
 
                   {/* Photo Info */}
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary">
                         {photo.category}
                       </span>
-                      <Eye className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      {photo.location && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          {photo.location}
+                        </div>
+                      )}
                     </div>
                     
-                    <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
                       {photo.title}
                     </h3>
                     
-                    <p className="text-muted-foreground text-sm mb-4">
-                      {photo.description}
-                    </p>
-                    
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {photo.location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {photo.date}
-                      </div>
-                    </div>
+                    {photo.description && (
+                      <p className="text-muted-foreground text-sm line-clamp-2">
+                        {photo.description}
+                      </p>
+                    )}
                   </div>
                 </div>
               </MotionDiv>
