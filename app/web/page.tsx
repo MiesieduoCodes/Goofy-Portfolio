@@ -1,13 +1,86 @@
 "use client"
 
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { MotionDiv } from "@/components/motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ExternalLink, Github, Code, Zap, Layers, RefreshCw, Search } from "lucide-react"
+import { initializeApp } from "firebase/app"
+import { getFirestore, collection, onSnapshot, query } from "firebase/firestore"
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
+  authDomain: "miesieduocodes.firebaseapp.com",
+  projectId: "miesieduocodes",
+  storageBucket: "miesieduocodes.firebasestorage.app",
+  messagingSenderId: "597948621417",
+  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
+  measurementId: "G-03B9NEFH04"
+}
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
 
 export default function WebPage() {
+  const [websites, setWebsites] = useState<any[]>([])
+  const [tools, setTools] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch data from Firebase
+  useEffect(() => {
+    setLoading(true)
+    
+    // Fetch websites
+    const websitesQuery = query(collection(db, "websites"))
+    const unsubscribeWebsites = onSnapshot(websitesQuery, (snapshot) => {
+      const websitesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      setWebsites(websitesData)
+      console.log("🌐 Websites loaded:", websitesData)
+    })
+
+    // Fetch tools (web development tools)
+    const toolsQuery = query(collection(db, "tools"))
+    const unsubscribeTools = onSnapshot(toolsQuery, (snapshot) => {
+      const toolsData = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() as {
+          name: string;
+          level: number;
+          category: string;
+        }
+      }))
+      .filter(tool => tool.category === "web")
+      setTools(toolsData)
+      console.log("🔧 Web tools loaded:", toolsData)
+    })
+
+    setLoading(false)
+
+    return () => {
+      unsubscribeWebsites()
+      unsubscribeTools()
+    }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-24">
+          <div className="container-custom py-16">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -54,34 +127,32 @@ export default function WebPage() {
           </MotionDiv>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { name: "React", level: 80 },
-              { name: "Next.js", level: 85 },
-              { name: "TypeScript", level: 80 },
-              { name: "Tailwind CSS", level: 95 },
-              { name: "Node.js", level: 70 },
-              { name: "Firebase", level: 80 },
-              { name: "Framer Motion", level: 70 },
-              { name: "GSAP", level: 60 }
-            ].map((skill, index) => (
-              <MotionDiv
-                key={skill.name}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="glass rounded-xl p-6 text-center card-hover"
-              >
-                <div className="text-2xl font-bold mb-2">{skill.name}</div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${skill.level}%` }}
-                  ></div>
-                </div>
-                <div className="text-sm text-muted-foreground mt-2">{skill.level}%</div>
-              </MotionDiv>
-            ))}
+            {tools.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <Code className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No skills available yet.</p>
+              </div>
+            ) : (
+              tools.map((skill, index) => (
+                <MotionDiv
+                  key={skill.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="glass rounded-xl p-6 text-center card-hover"
+                >
+                  <div className="text-2xl font-bold mb-2">{skill.name}</div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${skill.level}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">{skill.level}%</div>
+                </MotionDiv>
+              ))
+            )}
           </div>
         </section>
 
@@ -103,85 +174,49 @@ export default function WebPage() {
           </MotionDiv>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Azaiki Art Gallery",
-                description: "Full-featured online gallery with e-commerce functionality and custom CMS",
-                tech: ["Next.js", "Tailwind", "Flutterwave"],
-                link: "https://azaikiartgallery.org.ng",
-                image: "/images/azaikiartgallery.org.ng_.png"
-              },
-              {
-                title: "Empower Her",
-                description: "Social impact platform with advanced analytics and management dashboard",
-                tech: ["Next.js", "TypeScript", "Firebase"],
-                link: "https://dfcinspire.vercel.app",
-                image: "/images/dfcinspire.vercel.app_.png"
-              },
-              {
-                title: "Anim8",
-                description: "Collaborative task management app with real-time updates and team features",
-                tech: ["Next.js", "Firebase", "Tailwind"],
-                link: "https://anim8-two.vercel.app",
-                image: "/images/anim8-two.vercel.app_.png"
-              },
-              {
-                title: "Evelyn Foundation",
-                description: "Non-profit platform with donation system and event management",
-                tech: ["Next.js", "MongoDB", "Maps API"],
-                link: "https://evelynoweibofoundation.org/",
-                image: "/images/evelynoweibofoundation.org_.png"
-              },
-              {
-                title: "Global Sports FC",
-                description: "Sports club website with player profiles and match scheduling",
-                tech: ["Next.js", "TypeScript", "API"],
-                link: "https://globalsportsfc.com/",
-                image: "/images/globalsports.vercel.app_.png"
-              },
-              {
-                title: "Faven LP",
-                description: "Professional services website with client portal and booking system",
-                tech: ["Next.js", "Database", "Authentication"],
-                link: "https://www.favenlp.com/",
-                image: "/images/www.favenlp.com_.png"
-              }
-            ].map((project, index) => (
-              <MotionDiv
-                key={project.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="glass rounded-xl overflow-hidden card-hover group"
-              >
-                <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300"></div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                  <p className="text-muted-foreground mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tech.map((tech) => (
-                      <span key={tech} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                        {tech}
-                      </span>
-                    ))}
+            {websites.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <Code className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No projects available yet.</p>
+              </div>
+            ) : (
+              websites.map((project, index) => (
+                <MotionDiv
+                  key={project.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="glass rounded-xl overflow-hidden card-hover group"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
+                    <img 
+                      src={project.image || "/placeholder.svg?height=400&width=600"} 
+                      alt={project.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={project.link} target="_blank" rel="noopener noreferrer">
-                      View Project
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </MotionDiv>
-            ))}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                    <p className="text-muted-foreground mb-4">{project.description}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(project.tags || []).map((tech: string) => (
+                        <span key={tech} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={project.link || "#"} target="_blank" rel="noopener noreferrer">
+                        View Project
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </MotionDiv>
+              ))
+            )}
           </div>
         </section>
 

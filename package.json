@@ -14,7 +14,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "analyze": "cross-env ANALYZE=true next build"
+    "analyze": "cross-env ANALYZE=true next build",
+    "test:firebase": "npx tsx scripts/test-firebase.ts",
+    "populate:firebase": "npx tsx scripts/populate-firebase.ts",
+    "populate:firestore": "npx tsx scripts/populate-firestore.ts",
+    "debug:firestore": "npx tsx scripts/debug-firestore.ts",
+    "update:firestore": "npx tsx scripts/update-firestore.ts",
+    "test:client-firebase": "npx tsx scripts/test-client-firebase.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

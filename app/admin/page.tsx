@@ -14,7 +14,8 @@ import { Plus, Edit, Trash2, Save, X, Globe, Gamepad2, Code, Camera, Wrench, Bri
 import { PageTransition } from "@/components/page-transition"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { initializeApp } from "firebase/app"
-import { getDatabase, ref, push, set, onValue, remove, update } from "firebase/database"
+import { getFirestore, collection, doc, setDoc, getDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
 
 // Firebase configuration
 const firebaseConfig = {
@@ -30,11 +31,13 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
-const database = getDatabase(app)
+const db = getFirestore(app)
+const storage = getStorage(app)
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("tools")
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
   
   // Data states
   const [websites, setWebsites] = useState<any[]>([])
@@ -77,73 +80,100 @@ export default function AdminPage() {
 
   // Load data from Firebase
   useEffect(() => {
+    console.log("🔄 Starting data load...")
     const loadData = () => {
       // Load websites
-      const websitesRef = ref(database, "websites")
-      onValue(websitesRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setWebsites(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const websitesQuery = query(collection(db, "websites"))
+      const unsubscribeWebsites = onSnapshot(websitesQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("📊 Websites loaded:", data.length, data)
+        setWebsites(data)
       })
 
       // Load games
-      const gamesRef = ref(database, "games")
-      onValue(gamesRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setGames(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const gamesQuery = query(collection(db, "games"))
+      const unsubscribeGames = onSnapshot(gamesQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("🎮 Games loaded:", data.length, data)
+        setGames(data)
       })
 
       // Load skills
-      const skillsRef = ref(database, "skills")
-      onValue(skillsRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setSkills(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const skillsQuery = query(collection(db, "skills"))
+      const unsubscribeSkills = onSnapshot(skillsQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("🎯 Skills loaded:", data.length, data)
+        setSkills(data)
       })
 
       // Load techs
-      const techsRef = ref(database, "techs")
-      onValue(techsRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setTechs(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const techsQuery = query(collection(db, "techs"))
+      const unsubscribeTechs = onSnapshot(techsQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("⚙️ Techs loaded:", data.length, data)
+        setTechs(data)
       })
 
       // Load pictures
-      const picturesRef = ref(database, "photos")
-      onValue(picturesRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setPictures(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const picturesQuery = query(collection(db, "photos"))
+      const unsubscribePictures = onSnapshot(picturesQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("📸 Photos loaded:", data.length, data)
+        setPictures(data)
       })
 
       // Load tools
-      const toolsRef = ref(database, "tools")
-      onValue(toolsRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setTools(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const toolsQuery = query(collection(db, "tools"))
+      const unsubscribeTools = onSnapshot(toolsQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("🔧 Tools loaded:", data.length, data)
+        setTools(data)
       })
 
       // Load experiences
-      const experiencesRef = ref(database, "experiences")
-      onValue(experiencesRef, (snapshot) => {
-        const data = snapshot.val()
-        if (data) {
-          setExperiences(Object.entries(data).map(([id, item]: [string, any]) => ({ id, ...item })))
-        }
+      const experiencesQuery = query(collection(db, "experiences"))
+      const unsubscribeExperiences = onSnapshot(experiencesQuery, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        console.log("💼 Experiences loaded:", data.length, data)
+        setExperiences(data)
       })
+
+      // Cleanup function
+      return () => {
+        unsubscribeWebsites()
+        unsubscribeGames()
+        unsubscribeSkills()
+        unsubscribeTechs()
+        unsubscribePictures()
+        unsubscribeTools()
+        unsubscribeExperiences()
+      }
     }
 
-    loadData()
+    const cleanup = loadData()
+    return cleanup
   }, [])
+
+  // Image upload function
+  const handleImageUpload = async (file: File, type: string) => {
+    if (!file) return null
+    
+    setUploading(true)
+    try {
+      const fileName = `${type}/${Date.now()}-${file.name}`
+      const storageReference = storageRef(storage, fileName)
+      await uploadBytes(storageReference, file)
+      const downloadURL = await getDownloadURL(storageReference)
+      console.log("✅ Image uploaded:", downloadURL)
+      return downloadURL
+    } catch (error) {
+      console.error("❌ Image upload failed:", error)
+      alert("Image upload failed. Please try again.")
+      return null
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const resetForm = () => {
     setFormData({
@@ -260,16 +290,15 @@ export default function AdminPage() {
       
       if (editingId) {
         // Update existing
-        const refPath = ref(database, `${type}/${editingId}`)
-        await update(refPath, dataToSave)
+        const docRef = doc(db, type, editingId)
+        await updateDoc(docRef, dataToSave)
         console.log("Updated successfully")
         alert("Updated successfully!")
       } else {
         // Create new
-        const refPath = ref(database, type)
-        const newRef = push(refPath)
-        await set(newRef, { ...dataToSave, createdAt: Date.now() })
-        console.log("Created successfully with ID:", newRef.key)
+        const docRef = doc(collection(db, type))
+        await setDoc(docRef, { ...dataToSave, createdAt: Date.now() })
+        console.log("Created successfully with ID:", docRef.id)
         alert("Added successfully!")
       }
       
@@ -315,8 +344,8 @@ export default function AdminPage() {
   const handleDelete = async (id: string, type: string) => {
     if (confirm("Are you sure you want to delete this item?")) {
       try {
-        const refPath = ref(database, `${type}/${id}`)
-        await remove(refPath)
+        const docRef = doc(db, type, id)
+        await deleteDoc(docRef)
       } catch (error) {
         console.error("Error deleting data:", error)
         alert(`Error deleting data: ${error instanceof Error ? error.message : "Unknown error"}`)
@@ -647,12 +676,37 @@ export default function AdminPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Image URL</Label>
-                    <Input
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      placeholder="/images/example.png"
-                    />
+                    <Label>Image</Label>
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const imageUrl = await handleImageUpload(file, "websites")
+                            if (imageUrl) {
+                              setFormData({ ...formData, image: imageUrl })
+                            }
+                          }
+                        }}
+                        disabled={uploading}
+                      />
+                      {formData.image && (
+                        <div className="flex items-center gap-2">
+                          <img src={formData.image} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setFormData({ ...formData, image: "" })}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      )}
+                      {uploading && <p className="text-sm text-muted-foreground">Uploading image...</p>}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Tags (comma separated)</Label>
@@ -751,12 +805,37 @@ export default function AdminPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Image URL</Label>
-                    <Input
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      placeholder="/images/game.png"
-                    />
+                    <Label>Image</Label>
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const imageUrl = await handleImageUpload(file, "games")
+                            if (imageUrl) {
+                              setFormData({ ...formData, image: imageUrl })
+                            }
+                          }
+                        }}
+                        disabled={uploading}
+                      />
+                      {formData.image && (
+                        <div className="flex items-center gap-2">
+                          <img src={formData.image} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setFormData({ ...formData, image: "" })}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      )}
+                      {uploading && <p className="text-sm text-muted-foreground">Uploading image...</p>}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Tags (comma separated)</Label>
@@ -991,23 +1070,6 @@ export default function AdminPage() {
                         <SelectItem value="Landscapes">Landscapes</SelectItem>
                         <SelectItem value="Wildlife">Wildlife</SelectItem>
                         <SelectItem value="Macro">Macro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Image URL</Label>
-                  <Input
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="/images/photo.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Location</Label>
-                  <Input
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="Location where photo was taken"
                   />
                 </div>
@@ -1019,6 +1081,39 @@ export default function AdminPage() {
                     placeholder="Picture description"
                     rows={3}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>Image</Label>
+                  <div className="space-y-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          const imageUrl = await handleImageUpload(file, "photos")
+                          if (imageUrl) {
+                            setFormData({ ...formData, image: imageUrl })
+                          }
+                        }
+                      }}
+                      disabled={uploading}
+                    />
+                    {formData.image && (
+                      <div className="flex items-center gap-2">
+                        <img src={formData.image} alt="Preview" className="h-16 w-16 object-cover rounded" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, image: "" })}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                    {uploading && <p className="text-sm text-muted-foreground">Uploading image...</p>}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={() => handleSubmit("photos")}>

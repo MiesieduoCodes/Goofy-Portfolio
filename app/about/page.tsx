@@ -7,7 +7,24 @@ import { Gamepad2, Code, Camera, Music, Download, Mail, Briefcase } from "lucide
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, query } from "firebase/firestore";
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
+  authDomain: "miesieduocodes.firebaseapp.com",
+  projectId: "miesieduocodes",
+  storageBucket: "miesieduocodes.firebasestorage.app",
+  messagingSenderId: "597948621417",
+  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
+  measurementId: "G-03B9NEFH04"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const skills = {
   development: ["React / Next.js", "C# / Unity", "Tailwind CSS"],
@@ -16,38 +33,60 @@ const skills = {
   management: ["Project Leadership", "Public Speaking", "Technical Writing"],
 };
 
-const experiences = [
-  {
-    role: "Web Director",
-    company: "Bayelsa Tech Hub",
-    period: "2021 - 2025",
-    description: "Strategic oversight of the hub's web ecosystem. Led full-stack architecture for state-level digital initiatives and mentored 50+ junior developers.",
-    details: "Spearheaded the development of 9+ enterprise web applications using React, Next.js, and Node.js. Implemented CI/CD pipelines that reduced deployment time by 60%. Established coding standards and conducted regular code reviews. Led a team of 8 developers in migrating legacy systems to modern microservices architecture.",
-    icon: Briefcase,
-    align: "right",
-  },
-  {
-    role: "Junior Game Developer",
-    company: "KanQi Studios",
-    period: "2024 - Present",
-    description: "Focused on high-performance C# mechanics and interactive narrative systems. Optimized rendering pipelines for mobile platforms.",
-    details: "Developed 2 successful mobile games with 100 combined downloads. Created custom Unity plugins for enhanced performance. Implemented advanced AI systems for NPC behavior. Optimized game performance achieving 60fps on mid-range devices. Collaborated with design team to prototype and iterate on gameplay mechanics.",
-    icon: Gamepad2,
-    align: "left",
-  },
-  {
-    role: "Content Creator",
-    company: "Independent Freelance",
-    period: "2022 - Present",
-    description: "Delivering high-end commercial photography and video productions. Bridging technical prowess with artistic vision for global brands.",
-    details: "Produced content for companies including Faven LP and Helen View and Apartments. Directed and edited 20+ commercial videos. Developed expertise in drone cinematography and 360° photography. Built a client portfolio . Created educational content on photography techniques.",
-    icon: Camera,
-    align: "right",
-  },
-];
-
 export default function About() {
   const [hoveredExperience, setHoveredExperience] = useState<string | null>(null);
+  const [experiences, setExperiences] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch experiences from Firebase
+  useEffect(() => {
+    setLoading(true)
+    
+    const experiencesQuery = query(collection(db, "experiences"))
+    const unsubscribeExperiences = onSnapshot(experiencesQuery, (snapshot) => {
+      const experiencesData = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() as {
+          role: string;
+          company: string;
+          period: string;
+          startYear: string;
+          endYear: string | null;
+          isPresent: boolean;
+          description: string;
+          details: string;
+          align: "left" | "right";
+        }
+      }))
+      // Sort by start year (newest first)
+      const sortedExperiences = experiencesData.sort((a, b) => {
+        const yearA = parseInt(a.startYear) || 0
+        const yearB = parseInt(b.startYear) || 0
+        return yearB - yearA
+      })
+      setExperiences(sortedExperiences)
+      console.log("💼 Experiences loaded:", sortedExperiences)
+      setLoading(false)
+    })
+
+    return () => {
+      unsubscribeExperiences()
+    }
+  }, [])
+
+  // Get icon based on role or company
+  const getIcon = (role: string, company: string) => {
+    if (role.toLowerCase().includes('web') || company.toLowerCase().includes('tech')) {
+      return Code
+    }
+    if (role.toLowerCase().includes('game') || company.toLowerCase().includes('game')) {
+      return Gamepad2
+    }
+    if (role.toLowerCase().includes('developer') || company.toLowerCase().includes('studio')) {
+      return Gamepad2
+    }
+    return Briefcase
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,48 +240,63 @@ export default function About() {
             </div>
 
             <div className="space-y-12">
-              {experiences.map((exp, index) => (
-                <MotionDiv
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className={`relative flex items-center ${
-                    exp.align === "left" ? "justify-start" : "justify-end"
-                  }`}
-                >
-                  {/* Timeline Dot */}
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-4 border-background z-10"></div>
-
-                  {/* Content Card */}
-                  <div className={`w-full lg:w-5/12 ${exp.align === "left" ? "pr-8 text-right" : "pl-8"}`}>
-                    <div 
-                      className="glass rounded-xl p-6 card-hover cursor-pointer transition-all duration-300"
-                      onMouseEnter={() => setHoveredExperience(exp.role)}
-                      onMouseLeave={() => setHoveredExperience(null)}
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading experiences...</p>
+                </div>
+              ) : experiences.length === 0 ? (
+                <div className="text-center py-12">
+                  <Briefcase className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No experiences available yet.</p>
+                </div>
+              ) : (
+                experiences.map((exp, index) => {
+                  const IconComponent = getIcon(exp.role, exp.company)
+                  return (
+                    <MotionDiv
+                      key={exp.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, ease: "easeOut", delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className={`relative flex items-center ${
+                        exp.align === "left" ? "justify-start" : "justify-end"
+                      }`}
                     >
-                      <div className={`flex items-center gap-3 mb-3 ${exp.align === "left" ? "justify-end" : ""}`}>
-                        <exp.icon className="w-5 h-5 text-primary" />
-                        <h3 className="font-semibold text-lg">{exp.role}</h3>
+                      {/* Timeline Dot */}
+                      <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-4 border-background z-10"></div>
+
+                      {/* Content Card */}
+                      <div className={`w-full lg:w-5/12 ${exp.align === "left" ? "pr-8 text-right" : "pl-8"}`}>
+                        <div 
+                          className="glass rounded-xl p-6 card-hover cursor-pointer transition-all duration-300"
+                          onMouseEnter={() => setHoveredExperience(exp.id)}
+                          onMouseLeave={() => setHoveredExperience(null)}
+                        >
+                          <div className={`flex items-center gap-3 mb-3 ${exp.align === "left" ? "justify-end" : ""}`}>
+                            <IconComponent className="w-5 h-5 text-primary" />
+                            <h3 className="font-semibold text-lg">{exp.role}</h3>
+                          </div>
+                          <p className="text-primary font-medium mb-2">{exp.company}</p>
+                          <p className="text-sm text-muted-foreground mb-3">{exp.period}</p>
+                          <p className="text-sm text-muted-foreground">{exp.description}</p>
+                        </div>
+                        
+                        {/* Expandable Details */}
+                        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                          hoveredExperience === exp.id ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
+                        }`}>
+                          <div className="glass rounded-xl p-6 border-2 border-primary/20 bg-primary/5">
+                            <h4 className="font-semibold text-primary mb-3">Key Achievements & Responsibilities</h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{exp.details}</p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-primary font-medium mb-2">{exp.company}</p>
-                      <p className="text-sm text-muted-foreground mb-3">{exp.period}</p>
-                      <p className="text-sm text-muted-foreground">{exp.description}</p>
-                    </div>
-                    
-                    {/* Expandable Details */}
-                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                      hoveredExperience === exp.role ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
-                    }`}>
-                      <div className="glass rounded-xl p-6 border-2 border-primary/20 bg-primary/5">
-                        <h4 className="font-semibold text-primary mb-3">Key Achievements & Responsibilities</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{exp.details}</p>
-                      </div>
-                    </div>
-                  </div>
-                </MotionDiv>
-              ))}
+                    </MotionDiv>
+                  )
+                })
+              )}
             </div>
           </div>
         </section>

@@ -1,12 +1,30 @@
 "use client"
 
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import { MotionDiv } from "@/components/motion"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Gamepad2, Code, Zap, Layers, Palette, Cpu } from "lucide-react"
 import dynamic from "next/dynamic"
+import { initializeApp } from "firebase/app"
+import { getFirestore, collection, onSnapshot, query } from "firebase/firestore"
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
+  authDomain: "miesieduocodes.firebaseapp.com",
+  projectId: "miesieduocodes",
+  storageBucket: "miesieduocodes.firebasestorage.app",
+  messagingSenderId: "597948621417",
+  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
+  measurementId: "G-03B9NEFH04"
+}
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
 
 // Use dynamic import with SSR disabled for Three.js component
 const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcase"), {
@@ -22,6 +40,61 @@ const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcas
 })
 
 export default function GamesPage() {
+  const [games, setGames] = useState<any[]>([])
+  const [tools, setTools] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch data from Firebase
+  useEffect(() => {
+    setLoading(true)
+    
+    // Fetch games
+    const gamesQuery = query(collection(db, "games"))
+    const unsubscribeGames = onSnapshot(gamesQuery, (snapshot) => {
+      const gamesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      setGames(gamesData)
+      console.log("🎮 Games loaded:", gamesData)
+    })
+
+    // Fetch tools (game development tools)
+    const toolsQuery = query(collection(db, "tools"))
+    const unsubscribeTools = onSnapshot(toolsQuery, (snapshot) => {
+      const toolsData = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() as {
+          name: string;
+          level: number;
+          category: string;
+        }
+      }))
+      .filter(tool => tool.category === "games")
+      setTools(toolsData)
+      console.log("🔧 Game tools loaded:", toolsData)
+    })
+
+    setLoading(false)
+
+    return () => {
+      unsubscribeGames()
+      unsubscribeTools()
+    }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-24">
+          <div className="container-custom py-16">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -97,79 +170,49 @@ export default function GamesPage() {
           </MotionDiv>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Adventure Quest",
-                description: "3D adventure game with puzzle-solving mechanics and immersive storytelling",
-                tech: ["Unity", "C#", "3D Modeling"],
-                image: "/placeholder.svg?height=400&width=600"
-              },
-              {
-                title: "Space Shooter",
-                description: "Fast-paced arcade game with procedurally generated levels and power-ups",
-                tech: ["Unreal Engine", "Blueprint", "Game Design"],
-                image: "/placeholder.svg?height=400&width=600"
-              },
-              {
-                title: "Puzzle Master",
-                description: "Mobile puzzle game with increasingly difficult challenges and achievements",
-                tech: ["Unity", "C#", "Mobile Dev"],
-                image: "/placeholder.svg?height=400&width=600"
-              },
-              {
-                title: "Fantasy RPG",
-                description: "Immersive RPG with rich lore, character development, and turn-based combat",
-                tech: ["Godot", "GDScript", "Pixel Art"],
-                image: "/placeholder.svg?height=400&width=600"
-              },
-              {
-                title: "Racing Simulator",
-                description: "Realistic racing game with advanced physics and multiple vehicle types",
-                tech: ["Unity", "C#", "Physics"],
-                image: "/placeholder.svg?height=400&width=600"
-              },
-              {
-                title: "VR Experience",
-                description: "Interactive VR experience showcasing immersive storytelling techniques",
-                tech: ["Unity", "C#", "VR Dev"],
-                image: "/placeholder.svg?height=400&width=600"
-              }
-            ].map((project, index) => (
-              <MotionDiv
-                key={project.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="glass rounded-xl overflow-hidden card-hover group"
-              >
-                <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300"></div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                  <p className="text-muted-foreground mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tech.map((tech) => (
-                      <span key={tech} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                        {tech}
-                      </span>
-                    ))}
+            {games.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <Gamepad2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No games available yet.</p>
+              </div>
+            ) : (
+              games.map((project, index) => (
+                <MotionDiv
+                  key={project.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="glass rounded-xl overflow-hidden card-hover group"
+                >
+                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
+                    <img 
+                      src={project.image || "/placeholder.svg?height=400&width=600"} 
+                      alt={project.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/games/${project.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                      View Project
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </MotionDiv>
-            ))}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                    <p className="text-muted-foreground mb-4">{project.description}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(project.tags || []).map((tech: string) => (
+                        <span key={tech} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={project.link || "#"}>
+                        View Project
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </MotionDiv>
+              ))
+            )}
           </div>
         </section>
 
@@ -191,34 +234,32 @@ export default function GamesPage() {
           </MotionDiv>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { name: "Unity", level: 90 },
-              { name: "C#", level: 85 },
-              { name: "Unreal Engine", level: 75 },
-              { name: "Three.js", level: 80 },
-              { name: "3D Modeling", level: 70 },
-              { name: "Game Design", level: 85 },
-              { name: "VR/AR", level: 65 },
-              { name: "Animation", level: 75 }
-            ].map((skill, index) => (
-              <MotionDiv
-                key={skill.name}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="glass rounded-xl p-6 text-center card-hover"
-              >
-                <div className="text-2xl font-bold mb-2">{skill.name}</div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${skill.level}%` }}
-                  ></div>
-                </div>
-                <div className="text-sm text-muted-foreground mt-2">{skill.level}%</div>
-              </MotionDiv>
-            ))}
+            {tools.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <Code className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No skills available yet.</p>
+              </div>
+            ) : (
+              tools.map((skill, index) => (
+                <MotionDiv
+                  key={skill.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="glass rounded-xl p-6 text-center card-hover"
+                >
+                  <div className="text-2xl font-bold mb-2">{skill.name}</div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${skill.level}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">{skill.level}%</div>
+                </MotionDiv>
+              ))
+            )}
           </div>
         </section>
 
