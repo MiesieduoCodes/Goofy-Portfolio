@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 
 const stats = [
-  { value: 12, suffix: "+", label: "Years Experience" },
-  { value: 85, suffix: "", label: "Projects Delivered" },
+  { value: 4, suffix: "+", label: "Years Experience" },
+  { value: 10, suffix: "", label: "Projects Delivered" },
   { value: 400, suffix: "k", label: "Lines of Code" },
-  { value: 15, suffix: "", label: "Instruments Mastered" },
+  { value: 3, suffix: "", label: "Instruments Mastered" },
 ];
 
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
