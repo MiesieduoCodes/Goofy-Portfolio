@@ -187,7 +187,8 @@ export default function AdminPage() {
         alert("Please enter a tool name")
         return
       }
-      if (!formData.toolLevel || formData.toolLevel < 0 || formData.toolLevel > 100) {
+      const toolLevelNum = parseInt(formData.toolLevel)
+      if (!formData.toolLevel || isNaN(toolLevelNum) || toolLevelNum < 0 || toolLevelNum > 100) {
         alert("Please enter a valid skill level (0-100)")
         return
       }
