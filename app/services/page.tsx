@@ -1,5 +1,3 @@
-"use client"
-
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -13,27 +11,32 @@ import {
   Layers,
   Zap,
   RefreshCw,
-  Search
+  Search,
+  Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import { database } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
 
 const services = [
   {
     icon: Code,
     title: "Web Development",
     description: "Scalable, modern web applications built with performance and accessibility at the core. Full-stack expertise from concept to deployment.",
-    href: "/services/web",
+    href: "/web",
     features: ["React / Next.js", "TypeScript", "API Integration", "Performance Optimization"],
   },
   {
     icon: Gamepad2,
     title: "Game Development",
     description: "Immersive interactive experiences and procedural engine design using modern physics and AI. Unity specialist with C# expertise.",
-    href: "/services/games",
+    href: "/games",
     features: ["Unity / C#", "Procedural Generation", "Shader Programming", "Mobile Optimization"],
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile Apps",
+    description: "Native and cross-platform mobile applications for iOS and Android. React Native and Flutter specialist with modern UI/UX design.",
+    href: "/mobile",
+    features: ["React Native", "Flutter", "iOS & Android", "App Store Deployment"],
   },
   {
     icon: Camera,
@@ -75,22 +78,6 @@ const expertise = [
 ];
 
 export default function Services() {
-  const [services, setServices] = useState<any[]>([])
-
-  // Load services from Firebase (using techs collection for services)
-  useEffect(() => {
-    const servicesRef = ref(database, "techs")
-    onValue(servicesRef, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const servicesList = Object.entries(data).map(([id, item]: [string, any]) => ({
-          id,
-          ...item
-        }))
-        setServices(servicesList)
-      }
-    })
-  }, [])
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -107,7 +94,7 @@ export default function Services() {
               My <span className="text-gradient">Services</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Comprehensive services spanning web development, game development, photography, and music production. 
+              Comprehensive services spanning web development, game development, mobile apps, photography, and music production. 
               Each service delivered with technical excellence and creative innovation.
             </p>
           </MotionDiv>
@@ -115,7 +102,7 @@ export default function Services() {
 
         {/* Services Grid */}
         <section className="container-custom py-16">
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <MotionDiv
                 key={index}
@@ -150,7 +137,7 @@ export default function Services() {
 
                   {/* CTA */}
                   <Link href={service.href}>
-                    <Button variant="ghost" className="group/btn p-0 h-auto font-medium">
+                    <Button variant="ghost" className="group/btn px-4 py-2 h-auto font-medium hover:px-6 hover:py-3 transition-all duration-300">
                       Learn More
                       <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                     </Button>

@@ -8,8 +8,33 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Eye, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { database } from "@/lib/firebase"
-import { ref, onValue, query, orderByChild, limitToLast } from "firebase/database"
+import { initializeApp } from "firebase/app"
+import { getDatabase, ref, onValue, query, orderByChild, limitToLast } from "firebase/database"
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID 
+    ? `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`
+    : undefined,
+}
+
+let app: any = null
+let database: any = null
+
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+    app = initializeApp(firebaseConfig)
+    database = getDatabase(app)
+  }
+} catch (error) {
+  console.warn("Firebase not configured for photo gallery")
+}
 
 interface PhotoBentoGridProps {
   category?: string

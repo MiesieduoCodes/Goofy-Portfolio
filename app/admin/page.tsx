@@ -9,12 +9,36 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Edit, Trash2, Save, X, Globe, Gamepad2, Code, Camera, Wrench, Upload, Image as ImageIcon } from "lucide-react"
-import { database, storage } from "@/lib/firebase"
-import { ref, push, set, onValue, remove, update } from "firebase/database"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { Plus, Edit, Trash2, Save, X, Globe, Gamepad2, Code, Camera, Wrench } from "lucide-react"
 import { PageTransition } from "@/components/page-transition"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { initializeApp } from "firebase/app"
+import { getDatabase, ref, push, set, onValue, remove, update } from "firebase/database"
+
+// Firebase configuration - only initialize if config exists
+let app: any = null
+let database: any = null
+
+try {
+  const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID 
+      ? `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`
+      : undefined,
+  }
+
+  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+    app = initializeApp(firebaseConfig)
+    database = getDatabase(app)
+  }
+} catch (error) {
+  console.warn("Firebase not configured. Admin features will be limited.")
+}
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("websites")
@@ -40,8 +64,6 @@ export default function AdminPage() {
     level: "",
     technology: "",
   })
-  const [uploading, setUploading] = useState(false)
-  const [imageFile, setImageFile] = useState<File | null>(null)
 
   // Load data from Firebase
   useEffect(() => {
@@ -123,18 +145,7 @@ export default function AdminPage() {
     }
 
     try {
-      let imageUrl = formData.image
-      
-      // Upload image if file is selected
-      if (imageFile) {
-        setUploading(true)
-        const imageRef = storageRef(storage, `images/${type}/${Date.now()}-${imageFile.name}`)
-        const snapshot = await uploadBytes(imageRef, imageFile)
-        imageUrl = await getDownloadURL(snapshot.ref)
-        setUploading(false)
-      }
-
-      const dataToSave: any = { ...formData, image: imageUrl }
+      const dataToSave: any = { ...formData }
       
       // Process tags
       if (dataToSave.tags) {
@@ -159,12 +170,9 @@ export default function AdminPage() {
       }
       
       resetForm()
-      setImageFile(null)
     } catch (error) {
       console.error("Error saving data:", error)
       alert(`Error saving data: ${error instanceof Error ? error.message : "Unknown error"}`)
-    } finally {
-      setUploading(false)
     }
   }
 
@@ -302,26 +310,19 @@ export default function AdminPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Image Upload</Label>
-                    <div className="space-y-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                        disabled={uploading}
-                      />
-                      {uploading && (
-                        <p className="text-sm text-muted-foreground">Uploading image...</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Or Image URL</Label>
+                    <Label>Image URL</Label>
                     <Input
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
-                      disabled={uploading}
+                      placeholder="/images/example.png"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tags (comma separated)</Label>
+                    <Input
+                      value={formData.tags}
+                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                      placeholder="Next.js, React, TypeScript"
                     />
                   </div>
                 </div>
@@ -413,36 +414,21 @@ export default function AdminPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Image Upload</Label>
-                    <div className="space-y-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                        disabled={uploading}
-                      />
-                      {uploading && (
-                        <p className="text-sm text-muted-foreground">Uploading image...</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Or Image URL</Label>
+                    <Label>Image URL</Label>
                     <Input
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                       placeholder="/images/game.png"
-                      disabled={uploading}
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Tags (comma separated)</Label>
-                  <Input
-                    value={formData.tags}
-                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                    placeholder="Unity, C#, 3D"
-                  />
+                  <div className="space-y-2">
+                    <Label>Tags (comma separated)</Label>
+                    <Input
+                      value={formData.tags}
+                      onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                      placeholder="Unity, C#, 3D"
+                    />
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={() => handleSubmit("games")}>
@@ -673,26 +659,11 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Image Upload</Label>
-                  <div className="space-y-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                      disabled={uploading}
-                    />
-                    {uploading && (
-                      <p className="text-sm text-muted-foreground">Uploading image...</p>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Or Image URL</Label>
+                  <Label>Image URL</Label>
                   <Input
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     placeholder="/images/photo.jpg"
-                    disabled={uploading}
                   />
                 </div>
                 <div className="space-y-2">

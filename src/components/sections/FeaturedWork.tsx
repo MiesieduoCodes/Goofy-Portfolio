@@ -4,48 +4,49 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { database } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
+
+const projects = [
+  {
+    id: 1,
+    title: "Aetheris Engine",
+    description:
+      "A custom-built procedural terrain generator for large-scale immersive environments.",
+    image: "/project-game.jpg",
+    tags: ["Unity", "C#", "Procedural"],
+  },
+  {
+    id: 2,
+    title: "Lumina Visuals",
+    description:
+      "Photography portfolio platform focusing on high-contrast lighting and minimalist aesthetics.",
+    image: "/project-web.jpg",
+    tags: ["Vue.js", "Tailwind", "Photography"],
+  },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    },
+  },
+};
 
 export function FeaturedWork() {
-  const [projects, setProjects] = useState<any[]>([])
-
-  // Load featured projects from Firebase
-  useEffect(() => {
-    const projectsRef = ref(database, "websites")
-    onValue(projectsRef, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const projectsList = Object.entries(data)
-          .map(([id, item]: [string, any]) => ({ id, ...item }))
-          .slice(0, 3) // Get only first 3 projects for featured section
-        setProjects(projectsList)
-      }
-    })
-  }, [])
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.7,
-        ease: [0.25, 0.46, 0.45, 0.94] as const,
-      },
-    },
-  };
   return (
     <section className="section-spacing bg-card">
       <div className="container-custom">

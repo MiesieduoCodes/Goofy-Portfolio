@@ -1,34 +1,61 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { database } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
+
+const projects = [
+  {
+    title: "Aetheris Engine",
+    description: "A custom-built procedural terrain generator for large-scale immersive environments.",
+    tags: ["Unity", "C#", "Procedural"],
+    category: "Game Dev",
+    image: "/placeholder.svg",
+  },
+  {
+    title: "Lumina Visuals",
+    description: "Photography portfolio platform focusing on high-contrast lighting and minimalist aesthetics.",
+    tags: ["Vue.js", "Tailwind", "Photography"],
+    category: "Web Dev",
+    image: "/placeholder.svg",
+  },
+  {
+    title: "Hyperion Storefront",
+    description: "Headless e-commerce engine processing 10k+ transactions daily with custom ISR strategies.",
+    tags: ["Next.js", "E-commerce", "TypeScript"],
+    category: "Web Dev",
+    image: "/placeholder.svg",
+  },
+  {
+    title: "Sentinel Analytics",
+    description: "Real-time monitoring dashboard for industrial IoT devices with complex visualizations.",
+    tags: ["React", "D3.js", "WebSocket"],
+    category: "Web Dev",
+    image: "/placeholder.svg",
+  },
+  {
+    title: "Procedural Biome Engine",
+    description: "GPU-instancing system with noise-based compute shaders for real-time terrain generation.",
+    tags: ["Unity", "HLSL", "Compute Shaders"],
+    category: "Game Dev",
+    image: "/placeholder.svg",
+  },
+  {
+    title: "Rhythm Studio",
+    description: "Audio visualization platform for drummers featuring waveform analysis and session recording.",
+    tags: ["React", "Web Audio API", "Canvas"],
+    category: "Creative",
+    image: "/placeholder.svg",
+  },
+];
 
 const categories = ["All", "Web Dev", "Game Dev", "Creative"];
 
 export default function Work() {
-  const [projects, setProjects] = useState<any[]>([])
   const [selectedCategory, setSelectedCategory] = useState("All")
-
-  // Load projects from Firebase
-  useEffect(() => {
-    const projectsRef = ref(database, "websites")
-    onValue(projectsRef, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const projectsList = Object.entries(data).map(([id, item]: [string, any]) => ({
-          id,
-          ...item
-        }))
-        setProjects(projectsList)
-      }
-    })
-  }, [])
 
   const filteredProjects = selectedCategory === "All" 
     ? projects 

@@ -5,8 +5,13 @@ import { useEffect, useState, useRef } from "react";
 
 const stats = [
   { value: 4, suffix: "+", label: "Years Experience" },
+
   { value: 10, suffix: "", label: "Projects Delivered" },
   { value: 400, suffix: "k", label: "Lines of Code" },
+=======
+  { value: 10, suffix: "+", label: "Projects Delivered" },
+  { value: 300, suffix: "k", label: "Lines of Code" },
+ (build)
   { value: 3, suffix: "", label: "Instruments Mastered" },
 ];
 

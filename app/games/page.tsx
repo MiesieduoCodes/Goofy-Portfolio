@@ -1,17 +1,12 @@
 "use client"
+
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { MotionDiv } from "@/components/motion"
+import { Navbar } from "@/components/layout/Navbar"
+import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight } from "lucide-react"
-import { AnimatedText } from "@/components/animated-text"
-import { ScrollReveal } from "@/components/scroll-reveal"
-import { ProjectCard } from "@/components/project-card"
-import { PageTransition } from "@/components/page-transition"
+import { ArrowRight, Gamepad2, Code, Zap, Layers, Palette, Cpu } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useState, useEffect } from "react"
-import { database } from "@/lib/firebase"
-import { ref, onValue } from "firebase/database"
 
 // Use dynamic import with SSR disabled for Three.js component
 const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcase"), {
@@ -27,226 +22,297 @@ const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcas
 })
 
 export default function GamesPage() {
-  const [games, setGames] = useState<any[]>([])
-
-  // Load games from Firebase
-  useEffect(() => {
-    const gamesRef = ref(database, "games")
-    onValue(gamesRef, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const gamesList = Object.entries(data).map(([id, item]: [string, any]) => ({
-          id,
-          ...item
-        }))
-        setGames(gamesList)
-      }
-    })
-  }, [])
   return (
-    <PageTransition>
-      <div className="flex flex-col gap-16 pb-16">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-20 right-20 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
-        </div>
-        <div className="container relative z-10 flex flex-col items-center text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="pt-24">
+        {/* Hero Section */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
           >
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-              Game <span className="gradient-text">Development</span>
+            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
+              Game <span className="text-gradient">Development</span>
             </h1>
-          </motion.div>
-
-          <AnimatedText
-            text="Creating immersive and interactive gaming experiences"
-            className="mt-4 max-w-[700px] text-lg text-muted-foreground md:text-xl"
-            delay={0.5}
-          />
-        </div>
-      </section>
-
-      {/* Skyscraper Showcase Section */}
-      <section className="container">
-        <ScrollReveal>
-          <div className="flex flex-col items-center text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Interactive <span className="gradient-text">City</span></h2>
-            <p className="mt-4 max-w-[700px] text-muted-foreground">
-              Hover over the buildings to see labels. Rotate and zoom to explore the cityscape in the starlit night sky.
+            <p className="text-lg text-muted-foreground mb-8">
+              Creating immersive and interactive gaming experiences with modern technologies.
+              From mobile games to 3D worlds, I bring creative visions to life through code.
             </p>
-          </div>
-        </ScrollReveal>
+            <Button size="lg" asChild>
+              <Link href="/contact">
+                Start Your Game Project
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </MotionDiv>
+        </section>
 
-        <div className="mt-8 h-[700px] w-full overflow-hidden rounded-2xl border-2 border-yellow-400/20 shadow-2xl ring-4 ring-yellow-400/5 bg-gradient-to-b from-slate-900 to-slate-950">
-          <SkyscraperShowcase />
-        </div>
-      </section>
-
-      {/* Game Projects Section */}
-      <section className="container">
-        <ScrollReveal>
-          <div className="flex flex-col items-center text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-              Game <span className="gradient-text">Projects</span>
+        {/* Interactive Showcase */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Interactive <span className="text-gradient">Showcase</span>
             </h2>
-            <p className="mt-4 max-w-[700px] text-muted-foreground text-lg">
-              A collection of my game development projects, from mobile games to immersive 3D experiences
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Experience my 3D work with this interactive cityscape. Hover over buildings to see labels, 
+              rotate and zoom to explore the starlit night sky.
             </p>
-          </div>
-        </ScrollReveal>
+          </MotionDiv>
 
-        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {games.map((game, index) => (
-            <ProjectCard
-              key={game.id}
-              title={game.title}
-              description={game.description}
-              image={game.image}
-              tags={Array.isArray(game.tags) ? game.tags : (game.tags ? game.tags.split(',').map((tag: string) => tag.trim()) : [])}
-              link={game.link || `/games/${game.title.toLowerCase().replace(/\s+/g, '-')}`}
-              delay={index * 0.1}
-            />
-          ))}
-        </div>
-      </section>
+          <MotionDiv
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="h-[700px] w-full overflow-hidden rounded-2xl border-2 border-primary/20 shadow-2xl ring-4 ring-primary/5 bg-gradient-to-b from-slate-900 to-slate-950"
+          >
+            <SkyscraperShowcase />
+          </MotionDiv>
+        </section>
 
-      {/* Skills Section */}
-      <section className="bg-muted py-16">
-        <div className="container">
-          <ScrollReveal>
-            <div className="flex flex-col items-center text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                Game Development <span className="gradient-text">Skills</span>
-              </h2>
-              <p className="mt-4 max-w-[700px] text-muted-foreground text-lg">
-                The technologies and tools I use to create engaging gaming experiences
-              </p>
-            </div>
-          </ScrollReveal>
+        {/* Game Projects */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Featured <span className="text-gradient">Games</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              A collection of game development projects showcasing different genres and technologies
+            </p>
+          </MotionDiv>
 
-          <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              "Unity",
-              "Unreal Engine",
-              "C#",
-              "C++",
-              "Three.js",
-              "WebGL",
-              "Blender",
-              "3D Modeling",
-              "Game Design",
-              "Level Design",
-              "Animation",
-              "VR/AR",
-            ].map((skill, index) => (
-              <ScrollReveal key={skill} delay={0.05 * index}>
-                <motion.div
-                  whileHover={{ scale: 1.1, y: -5 }}
-                  className="group flex items-center justify-center rounded-lg border-2 border-border bg-background p-4 text-center transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20 hover:bg-primary/5"
-                >
-                  <span className="text-sm font-medium group-hover:text-primary transition-colors">{skill}</span>
-                </motion.div>
-              </ScrollReveal>
+              {
+                title: "Adventure Quest",
+                description: "3D adventure game with puzzle-solving mechanics and immersive storytelling",
+                tech: ["Unity", "C#", "3D Modeling"],
+                image: "/placeholder.svg?height=400&width=600"
+              },
+              {
+                title: "Space Shooter",
+                description: "Fast-paced arcade game with procedurally generated levels and power-ups",
+                tech: ["Unreal Engine", "Blueprint", "Game Design"],
+                image: "/placeholder.svg?height=400&width=600"
+              },
+              {
+                title: "Puzzle Master",
+                description: "Mobile puzzle game with increasingly difficult challenges and achievements",
+                tech: ["Unity", "C#", "Mobile Dev"],
+                image: "/placeholder.svg?height=400&width=600"
+              },
+              {
+                title: "Fantasy RPG",
+                description: "Immersive RPG with rich lore, character development, and turn-based combat",
+                tech: ["Godot", "GDScript", "Pixel Art"],
+                image: "/placeholder.svg?height=400&width=600"
+              },
+              {
+                title: "Racing Simulator",
+                description: "Realistic racing game with advanced physics and multiple vehicle types",
+                tech: ["Unity", "C#", "Physics"],
+                image: "/placeholder.svg?height=400&width=600"
+              },
+              {
+                title: "VR Experience",
+                description: "Interactive VR experience showcasing immersive storytelling techniques",
+                tech: ["Unity", "C#", "VR Dev"],
+                image: "/placeholder.svg?height=400&width=600"
+              }
+            ].map((project, index) => (
+              <MotionDiv
+                key={project.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="glass rounded-xl overflow-hidden card-hover group"
+              >
+                <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
+                  <img 
+                    src={project.image} 
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300"></div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                  <p className="text-muted-foreground mb-4">{project.description}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {project.tech.map((tech) => (
+                      <span key={tech} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/games/${project.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      View Project
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </MotionDiv>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Game Development Process */}
-      <section className="bg-gradient-to-br from-muted/50 via-background to-muted/30 py-16">
-        <div className="container">
-          <ScrollReveal>
-            <div className="flex flex-col items-center text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-                Game Development <span className="gradient-text">Process</span>
-              </h2>
-              <p className="mt-4 max-w-[700px] text-muted-foreground text-lg">
-                My approach to creating engaging and polished gaming experiences
-              </p>
-            </div>
-          </ScrollReveal>
+        {/* Technical Skills */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Game Development <span className="text-gradient">Expertise</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Comprehensive skills covering game engines, programming, design, and optimization
+            </p>
+          </MotionDiv>
 
-          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {[
-            {
-              title: "Concept & Design",
-              description:
-                "Every game starts with a solid concept and design document. I focus on creating engaging gameplay mechanics, compelling narratives, and intuitive user experiences.",
-              delay: 0.1,
-            },
-            {
-              title: "Prototyping",
-              description:
-                "I build rapid prototypes to test core gameplay mechanics and validate the fun factor early in the development process.",
-              delay: 0.2,
-            },
-            {
-              title: "Asset Creation",
-              description:
-                "From 3D models and animations to sound effects and music, I create or source high-quality assets that bring the game world to life.",
-              delay: 0.3,
-            },
-            {
-              title: "Development & Testing",
-              description:
-                "I implement the game using industry-standard tools and practices, with rigorous testing throughout the development cycle to ensure a polished final product.",
-              delay: 0.4,
-            },
-          ].map((item, index) => (
-            <ScrollReveal key={index} delay={item.delay}>
-              <motion.div
-                whileHover={{ scale: 1.02, y: -5 }}
-                transition={{ duration: 0.3 }}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { name: "Unity", level: 90 },
+              { name: "C#", level: 85 },
+              { name: "Unreal Engine", level: 75 },
+              { name: "Three.js", level: 80 },
+              { name: "3D Modeling", level: 70 },
+              { name: "Game Design", level: 85 },
+              { name: "VR/AR", level: 65 },
+              { name: "Animation", level: 75 }
+            ].map((skill, index) => (
+              <MotionDiv
+                key={skill.name}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="glass rounded-xl p-6 text-center card-hover"
               >
-                <Card className="h-full border-2 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-                  <CardContent className="p-6">
-                    <h3 className="mb-2 text-xl font-bold group-hover:text-primary transition-colors">{item.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{item.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </ScrollReveal>
-          ))}
+                <div className="text-2xl font-bold mb-2">{skill.name}</div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${skill.level}%` }}
+                  ></div>
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">{skill.level}%</div>
+              </MotionDiv>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="container py-16">
-        <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 shadow-xl">
-          <CardContent className="flex flex-col items-center gap-4 p-8 text-center sm:p-12">
-            <ScrollReveal>
-              <h2 className="text-2xl font-bold sm:text-3xl">Interested in a Game <span className="gradient-text">Project?</span></h2>
-              <p className="max-w-[600px] text-muted-foreground text-lg">
-                I'm always open to new game development projects and collaborations. Let's create something amazing
-                together!
-              </p>
-            </ScrollReveal>
+        {/* Development Process */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Game Development <span className="text-gradient">Process</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              A structured approach to creating engaging and polished gaming experiences
+            </p>
+          </MotionDiv>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <Button size="lg" asChild className="mt-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: Layers,
+                title: "Concept & Design",
+                description: "Creating engaging gameplay mechanics, compelling narratives, and intuitive user experiences"
+              },
+              {
+                icon: Zap,
+                title: "Prototyping",
+                description: "Building rapid prototypes to test core mechanics and validate the fun factor early"
+              },
+              {
+                icon: Palette,
+                title: "Asset Creation",
+                description: "Developing 3D models, animations, sound effects, and music to bring the game world to life"
+              },
+              {
+                icon: Code,
+                title: "Development",
+                description: "Implementing features with rigorous testing to ensure a polished final product"
+              }
+            ].map((step, index) => (
+              <MotionDiv
+                key={step.title}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="glass rounded-xl p-6 text-center card-hover"
+              >
+                <step.icon className="w-12 h-12 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">{step.title}</h3>
+                <p className="text-muted-foreground text-sm">{step.description}</p>
+              </MotionDiv>
+            ))}
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="container-custom py-16">
+          <MotionDiv
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="glass rounded-2xl p-8 md:p-12 text-center"
+          >
+            <Gamepad2 className="w-16 h-16 text-primary mx-auto mb-6" />
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Ready to Create Your <span className="text-gradient">Game?</span>
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Let's bring your game idea to life with engaging gameplay, stunning visuals, and polished experiences.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" asChild>
                 <Link href="/contact">
-                  Get in Touch
+                  Start Your Game
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </section>
-      </div>
-    </PageTransition>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="#showcase">
+                  View Showcase
+                  <Gamepad2 className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </MotionDiv>
+        </section>
+      </main>
+      <Footer />
+    </div>
   )
 }
 
