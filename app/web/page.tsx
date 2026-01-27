@@ -299,7 +299,7 @@ export default function WebPage() {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="https://github.com/goofydidthis" target="_blank" rel="noopener noreferrer">
+                <Link href="https://github.com/miesieduocodes" target="_blank" rel="noopener noreferrer">
                   <Github className="mr-2 h-4 w-4" />
                   View GitHub
                 </Link>
