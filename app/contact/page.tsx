@@ -1,7 +1,7 @@
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Mail, Phone, MapPin, Send, X, Linkedin, Github } from "lucide-react";
+import { Mail, Phone, MapPin, Send, X, Linkedin, Github, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -29,18 +29,23 @@ const contactInfo = [
 const socialLinks = [
   {
     icon: Github,
-    href: "https://github.com/miesieduo",
+    href: "https://github.com/MiesieduoCodes",
     label: "GitHub",
   },
   {
     icon: Linkedin,
-    href: "https://linkedin.com/in/miesieduo-veria",
+    href: "https://ng.linkedin.com/in/goofydidthis",
     label: "LinkedIn",
   },
   {
     icon: X,
-    href: "https://twitter.com/miesieduo",
+    href: "https://x.com/MiesieduoVeria/",
     label: "Twitter",
+  },
+  {
+    icon: Instagram,
+    href: "https://www.instagram.com/goofy_did_this/",
+    label: "Instagram",
   },
 ];
 

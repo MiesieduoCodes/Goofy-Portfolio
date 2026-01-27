@@ -94,7 +94,7 @@ export default function Footer() {
               <h3 className="text-sm font-medium">Social</h3>
               <div className="flex gap-3">
                 <motion.a
-                  href="https://github.com/goofydidthis"
+                  href="https://github.com/MiesieduoCodes"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.15, y: -2 }}
@@ -105,7 +105,7 @@ export default function Footer() {
                   <span className="sr-only">GitHub</span>
                 </motion.a>
                 <motion.a
-                  href="https://twitter.com/goofydidthis"
+                  href="https://x.com/MiesieduoVeria/"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.15, y: -2 }}
@@ -116,7 +116,7 @@ export default function Footer() {
                   <span className="sr-only">Twitter</span>
                 </motion.a>
                 <motion.a
-                  href="https://instagram.com/goofydidthis"
+                  href="https://www.instagram.com/goofy_did_this/"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.15, y: -2 }}
@@ -127,7 +127,7 @@ export default function Footer() {
                   <span className="sr-only">Instagram</span>
                 </motion.a>
                 <motion.a
-                  href="https://linkedin.com/in/miesieduo-veria"
+                  href="https://ng.linkedin.com/in/goofydidthis"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.15, y: -2 }}
