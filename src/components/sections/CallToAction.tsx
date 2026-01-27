@@ -29,7 +29,7 @@ export function CallToAction() {
           </p>
 
           {/* CTA Button */}
-          <Button variant="hero" size="xl" asChild className="group">
+          <Button variant="default" size="xl" asChild className="group">
             <Link href="/contact">
               Let's Work Together
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />

@@ -52,13 +52,13 @@ export default function NotFound() {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
             >
-              <Button variant="hero" size="lg" asChild>
+              <Button variant="default" size="lg" asChild>
                 <Link href="/">
                   <Home className="w-4 h-4 mr-2" />
                   Back to Home
                 </Link>
               </Button>
-              <Button variant="heroOutline" size="lg" asChild>
+              <Button variant="outline" size="lg" asChild>
                 <Link href="/work">
                   <Search className="w-4 h-4 mr-2" />
                   Browse Portfolio

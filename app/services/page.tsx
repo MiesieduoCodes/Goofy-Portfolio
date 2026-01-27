@@ -244,12 +244,12 @@ export default function Services() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/contact">
-                <Button variant="hero" size="lg">
+                <Button variant="default" size="lg">
                   Get Started
                 </Button>
               </Link>
               <Link href="/work">
-                <Button variant="heroOutline" size="lg">
+                <Button variant="outline" size="lg">
                   View Portfolio
                 </Button>
               </Link>

@@ -54,7 +54,7 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-6"
           >
-            <Button variant="hero" size="lg" asChild className="text-lg px-8 py-4">
+            <Button variant="default" size="lg" asChild className="text-lg px-8 py-4">
               <Link href="/work">View Portfolio</Link>
             </Button>
             <Button variant="outline" size="lg" asChild className="text-lg px-8 py-4">

@@ -81,7 +81,7 @@ export function Navbar() {
         </div>
 
         {/* Contact Button - Right */}
-        <Button variant="hero" size="sm" asChild className="hidden md:flex">
+        <Button variant="default" size="sm" asChild className="hidden md:flex">
           <Link href="/contact">Contact Me</Link>
         </Button>
 
@@ -159,7 +159,7 @@ export function Navbar() {
                 transition={{ duration: 0.1, ease: "easeOut", delay: 0.2 }}
               >
                 <Button 
-                  variant="hero" 
+                  variant="default" 
                   size="lg" 
                   className="mt-8" 
                   asChild

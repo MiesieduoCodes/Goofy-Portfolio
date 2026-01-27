@@ -83,11 +83,11 @@ export default function Music() {
               landscapes for artists, games, and media productions.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button variant="hero" size="lg">
+              <Button variant="default" size="lg">
                 <Play className="w-4 h-4 mr-2" />
                 Listen to Demo Reel
               </Button>
-              <Button variant="heroOutline" size="lg" asChild>
+              <Button variant="outline" size="lg" asChild>
                 <Link href="/contact">Book a Session</Link>
               </Button>
             </div>
@@ -260,11 +260,11 @@ export default function Music() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/contact">
-                <Button variant="hero" size="lg">
+                <Button variant="default" size="lg">
                   Start Collaboration
                 </Button>
               </Link>
-              <Button variant="heroOutline" size="lg">
+              <Button variant="outline" size="lg">
                 <Download className="w-4 h-4 mr-2" />
                 Download Press Kit
               </Button>

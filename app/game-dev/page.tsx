@@ -85,11 +85,11 @@ export default function GameDev() {
               for mobile, PC, and VR platforms.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button variant="hero" size="lg">
+              <Button variant="default" size="lg">
                 <Play className="w-4 h-4 mr-2" />
                 Play Demo Games
               </Button>
-              <Button variant="heroOutline" size="lg" asChild>
+              <Button variant="outline" size="lg" asChild>
                 <Link href="/contact">Discuss Your Project</Link>
               </Button>
             </div>
@@ -317,11 +317,11 @@ export default function GameDev() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/contact">
-                <Button variant="hero" size="lg">
+                <Button variant="default" size="lg">
                   Start Your Project
                 </Button>
               </Link>
-              <Button variant="heroOutline" size="lg">
+              <Button variant="outline" size="lg">
                 <Gamepad2 className="w-4 h-4 mr-2" />
                 View Portfolio
               </Button>
