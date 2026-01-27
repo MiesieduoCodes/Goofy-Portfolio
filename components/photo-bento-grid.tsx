@@ -27,17 +27,17 @@ const db = getFirestore(app)
 
 interface PhotoBentoGridProps {
   category?: string
-  limit?: number
+  photoLimit?: number
 }
 
-export function PhotoBentoGrid({ category, limit = 12 }: PhotoBentoGridProps) {
+export function PhotoBentoGrid({ category, photoLimit = 12 }: PhotoBentoGridProps) {
   const [photos, setPhotos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null)
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, "photos"), orderBy("createdAt", "desc"), limit(limit * 2)),
+      query(collection(db, "photos"), orderBy("createdAt", "desc"), limit(photoLimit * 2)),
       (snapshot) => {
         const photosData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -51,7 +51,7 @@ export function PhotoBentoGrid({ category, limit = 12 }: PhotoBentoGridProps) {
         }
 
         // Limit results
-        filteredPhotos = filteredPhotos.slice(0, limit)
+        filteredPhotos = filteredPhotos.slice(0, photoLimit)
         setPhotos(filteredPhotos)
         setLoading(false)
       },
@@ -62,7 +62,7 @@ export function PhotoBentoGrid({ category, limit = 12 }: PhotoBentoGridProps) {
     )
 
     return () => unsubscribe()
-  }, [category, limit])
+  }, [category, photoLimit])
 
   const getGridClass = (index: number) => {
     // More scattered patterns for photos

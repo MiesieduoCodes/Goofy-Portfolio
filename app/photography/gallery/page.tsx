@@ -64,7 +64,7 @@ export default function GalleryPage() {
           <TabsContent value={activeCategory} className="mt-0">
             <PhotoBentoGrid
               category={activeCategory === "all" ? undefined : activeCategory}
-              limit={12}
+              photoLimit={12}
             />
           </TabsContent>
         </Tabs>

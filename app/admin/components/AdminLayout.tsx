@@ -38,7 +38,7 @@ interface NavItem {
   title: string
   href: string
   icon: React.ComponentType<{ className?: string }>
-  countKey: keyof typeof counts
+  countKey: 'websites' | 'games' | 'experiences' | 'tools' | 'photos'
   color: string
 }
 
