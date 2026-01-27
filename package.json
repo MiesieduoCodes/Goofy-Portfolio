@@ -20,7 +20,8 @@
     "populate:firestore": "npx tsx scripts/populate-firestore.ts",
     "debug:firestore": "npx tsx scripts/debug-firestore.ts",
     "update:firestore": "npx tsx scripts/update-firestore.ts",
-    "test:client-firebase": "npx tsx scripts/test-client-firebase.ts"
+    "test:client-firebase": "npx tsx scripts/test-client-firebase.ts",
+    "test:storage-upload": "npx tsx scripts/test-storage-upload.ts"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow read access to all files
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+    
+    // Allow write access for development (secure this in production!)
+    match /{allPaths=**} {
+      allow write: if true;
+    }
+    
+    // Specific folder rules (more restrictive for production)
+    match /websites/{fileName} {
+      allow write: if true; // Change to request.auth != null for production
+    }
+    
+    match /games/{fileName} {
+      allow write: if true; // Change to request.auth != null for production
+    }
+    
+    match /photos/{fileName} {
+      allow write: if true; // Change to request.auth != null for production
+    }
+    
+    match /experiences/{fileName} {
+      allow write: if true; // Change to request.auth != null for production
+    }
+    
+    match /tools/{fileName} {
+      allow write: if true; // Change to request.auth != null for production
+    }
+  }
+}

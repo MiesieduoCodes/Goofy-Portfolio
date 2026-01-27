@@ -9,32 +9,21 @@ import { Button } from "@/components/ui/button"
 import { Eye, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { initializeApp } from "firebase/app"
-import { getDatabase, ref, onValue, query, orderByChild, limitToLast } from "firebase/database"
+import { getFirestore, collection, onSnapshot, query, orderBy, limit } from "firebase/firestore"
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID 
-    ? `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}-default-rtdb.firebaseio.com`
-    : undefined,
+  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
+  authDomain: "miesieduocodes.firebaseapp.com",
+  projectId: "miesieduocodes",
+  storageBucket: "miesieduocodes.firebasestorage.app",
+  messagingSenderId: "597948621417",
+  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
+  measurementId: "G-03B9NEFH04"
 }
 
-let app: any = null
-let database: any = null
-
-try {
-  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-    app = initializeApp(firebaseConfig)
-    database = getDatabase(app)
-  }
-} catch (error) {
-  console.warn("Firebase not configured for photo gallery")
-}
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
 
 interface PhotoBentoGridProps {
   category?: string
@@ -47,32 +36,30 @@ export function PhotoBentoGrid({ category, limit = 12 }: PhotoBentoGridProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null)
 
   useEffect(() => {
-    if (!database) {
-      setLoading(false)
-      return
-    }
-
-    const photosRef = ref(database, "photos")
-    const photosQuery = query(photosRef, orderByChild("createdAt"), limitToLast(limit * 2))
-
-    const unsubscribe = onValue(photosQuery, (snapshot) => {
-      if (snapshot.exists()) {
-        const photosData = snapshot.val()
-        let photosList = Object.entries(photosData)
-          .map(([id, item]: [string, any]) => ({ id, ...item }))
-          .reverse()
+    const unsubscribe = onSnapshot(
+      query(collection(db, "photos"), orderBy("createdAt", "desc"), limit(limit * 2)),
+      (snapshot) => {
+        const photosData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
 
         // Filter by category if specified
+        let filteredPhotos = photosData
         if (category && category !== "all") {
-          photosList = photosList.filter((photo: any) => photo.category === category)
+          filteredPhotos = photosData.filter((photo: any) => photo.category === category)
         }
 
         // Limit results
-        photosList = photosList.slice(0, limit)
-        setPhotos(photosList)
+        filteredPhotos = filteredPhotos.slice(0, limit)
+        setPhotos(filteredPhotos)
+        setLoading(false)
+      },
+      (error) => {
+        console.error("Error fetching photos:", error)
+        setLoading(false)
       }
-      setLoading(false)
-    })
+    )
 
     return () => unsubscribe()
   }, [category, limit])
@@ -124,6 +111,11 @@ export function PhotoBentoGrid({ category, limit = 12 }: PhotoBentoGridProps) {
     return (
       <div className="rounded-lg border-2 border-dashed p-12 text-center text-muted-foreground">
         No photos available in this category.
+        <div className="mt-4">
+          <Button asChild>
+            <Link href="/admin/photos">Add Your First Photo</Link>
+          </Button>
+        </div>
       </div>
     )
   }

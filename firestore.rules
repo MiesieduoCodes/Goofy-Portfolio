@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to all collections for authenticated and unauthenticated users
+    match /{document=**} {
+      allow read: if true;
+      allow write: if false; // Deny write access from client for security
+    }
+    
+    // Specific rules for collections
+    match /websites/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /games/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /experiences/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /tools/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /skills/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /techs/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /photos/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
