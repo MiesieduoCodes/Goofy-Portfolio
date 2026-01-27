@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { Resend } from 'resend'
 
 // Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_6Afeoyet_CfJpu2mJJci2aJzEDNwbiazB')
 
 // Form validation schema
 const contactSchema = z.object({
@@ -15,11 +15,27 @@ const contactSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Debug: Check if API key is loaded
+    if (!process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not set in environment variables')
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Server configuration error. API key not found.' 
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log('API Key found:', process.env.RESEND_API_KEY.substring(0, 10) + '...')
+    
     // Parse the request body
     const body = await request.json()
     
     // Validate the form data
     const validatedData = contactSchema.parse(body)
+    
+    console.log('Sending email with data:', validatedData)
     
     // Send email using Resend
     const { data, error } = await resend.emails.send({
@@ -57,7 +73,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('Resend error:', error)
+      console.error('Resend error details:', {
+        name: error.name,
+        message: error.message,
+        statusCode: error.statusCode
+      })
       return NextResponse.json(
         { 
           success: false, 
