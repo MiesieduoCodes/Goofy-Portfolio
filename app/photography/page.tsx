@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Camera, Eye, Download, Calendar, MapPin } from "lucide-react";
+import { Camera, Eye, Download, Calendar, MapPin, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -50,6 +50,8 @@ const photographyCategories = [
 export default function Photography() {
   const [photos, setPhotos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -71,8 +73,24 @@ export default function Photography() {
     return () => unsubscribe()
   }, [])
 
-  // Get featured photos (first 3)
-  const featuredPhotos = photos.slice(0, 3)
+  // Get featured photos (first 3) - filtered by category if selected
+  const featuredPhotos = selectedCategory 
+    ? photos.filter(photo => {
+        const photoCategory = (photo.category || "").toLowerCase()
+        const targetCategory = selectedCategory.toLowerCase()
+        
+        // Same matching logic as getCategoryCount
+        if (photoCategory === targetCategory) return true
+        if (targetCategory.includes("nature") && photoCategory.includes("nature")) return true
+        if (targetCategory.includes("nature") && photoCategory.includes("wildlife")) return true
+        if (targetCategory.includes("landscape") && photoCategory.includes("landscape")) return true
+        if (targetCategory.includes("architecture") && photoCategory.includes("architecture")) return true
+        if (targetCategory.includes("commercial") && photoCategory.includes("commercial")) return true
+        if (targetCategory.includes("commercial") && photoCategory.includes("urban")) return true
+        
+        return false
+      }).slice(0, 3)
+    : photos.slice(0, 3)
 
   // Count photos by category (case-insensitive and partial matching)
   const getCategoryCount = (category: string) => {
@@ -100,6 +118,10 @@ export default function Photography() {
     ...category,
     count: getCategoryCount(category.title)
   }))
+
+  // Debug: Log the detected categories and counts
+  console.log("Detected photos:", photos.map(p => ({ title: p.title, category: p.category })))
+  console.log("Category counts:", categoriesWithCounts.map(c => ({ title: c.title, count: c.count })))
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,12 +164,33 @@ export default function Photography() {
             viewport={{ once: true }}
             className="mb-12"
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Featured <span className="text-gradient">Work</span>
-            </h2>
-            <p className="text-muted-foreground">
-              A selection of my most recent and notable photography projects.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+                  {selectedCategory ? (
+                    <>
+                      <span className="text-gradient">{selectedCategory}</span> Photos
+                    </>
+                  ) : (
+                    <>
+                      Featured <span className="text-gradient">Work</span>
+                    </>
+                  )}
+                </h2>
+                <p className="text-muted-foreground">
+                  {selectedCategory 
+                    ? `Showing photos from ${selectedCategory} category`
+                    : "A selection of my most recent and notable photography projects."
+                  }
+                </p>
+              </div>
+              {selectedCategory && (
+                <Button variant="outline" onClick={() => setSelectedCategory(null)}>
+                  <X className="w-4 h-4 mr-2" />
+                  Clear Filter
+                </Button>
+              )}
+            </div>
           </MotionDiv>
 
           {loading ? (
@@ -180,7 +223,7 @@ export default function Photography() {
                 >
                   <div className="glass rounded-xl overflow-hidden card-hover">
                     {/* Photo */}
-                    <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
+                    <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden cursor-pointer" onClick={() => setSelectedPhoto(photo)}>
                       {photo.image ? (
                         <img 
                           src={photo.image} 
@@ -276,6 +319,7 @@ export default function Photography() {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
                 className="group cursor-pointer"
+                onClick={() => setSelectedCategory(category.title)}
               >
                 <div className="glass rounded-xl overflow-hidden card-hover">
                   {/* Category Image */}
@@ -392,6 +436,67 @@ export default function Photography() {
           </MotionDiv>
         </section>
       </main>
+      
+      {/* Photo Modal */}
+      {selectedPhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => setSelectedPhoto(null)}>
+          <div className="relative max-h-[90vh] max-w-4xl overflow-auto rounded-lg bg-background shadow-xl border-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute top-4 right-4 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 hover:bg-background transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="relative aspect-square md:aspect-auto">
+                {selectedPhoto.image ? (
+                  <img
+                    src={selectedPhoto.image}
+                    alt={selectedPhoto.title || "Photograph"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <Camera className="w-16 h-16 text-primary/30" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col p-6">
+                <h3 className="text-2xl font-bold mb-2">{selectedPhoto.title || "Untitled"}</h3>
+                {selectedPhoto.location && (
+                  <p className="text-muted-foreground mb-1">{selectedPhoto.location}</p>
+                )}
+                {selectedPhoto.category && (
+                  <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4 w-fit">
+                    {selectedPhoto.category}
+                  </span>
+                )}
+                {selectedPhoto.description && (
+                  <p className="mb-6 leading-relaxed">{selectedPhoto.description}</p>
+                )}
+                {selectedPhoto.date && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                    <Calendar className="w-4 h-4" />
+                    {selectedPhoto.date}
+                  </div>
+                )}
+                <div className="mt-auto flex gap-4">
+                  <Button asChild>
+                    <Link href="/photography/gallery">
+                      View Full Gallery
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" onClick={() => setSelectedPhoto(null)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <Footer />
     </div>
   );
