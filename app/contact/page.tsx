@@ -1,7 +1,10 @@
+"use client"
+
+import { useState } from "react";
 import { MotionDiv } from "@/components/motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Mail, Phone, MapPin, Send, X, Linkedin, Github, Instagram } from "lucide-react";
+import { Mail, Phone, MapPin, Send, X, Linkedin, Github, Instagram, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -50,6 +53,55 @@ const socialLinks = [
 ];
 
 export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setSubmitStatus('error');
+        setErrorMessage(data.message || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setErrorMessage('Network error. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -86,7 +138,7 @@ export default function Contact() {
                   Send a <span className="text-gradient">Message</span>
                 </h2>
                 
-                <form className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium mb-2">
@@ -96,9 +148,12 @@ export default function Contact() {
                         type="text"
                         id="name"
                         name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
                         placeholder="John Doe"
                         required
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div>
@@ -109,9 +164,12 @@ export default function Contact() {
                         type="email"
                         id="email"
                         name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
                         placeholder="john@example.com"
                         required
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -124,9 +182,12 @@ export default function Contact() {
                       type="text"
                       id="subject"
                       name="subject"
+                      value={formData.subject}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
                       placeholder="Project Inquiry"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                   
@@ -137,16 +198,50 @@ export default function Contact() {
                     <textarea
                       id="message"
                       name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
                       rows={6}
                       className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors resize-none"
                       placeholder="Tell me about your project..."
                       required
+                      disabled={isSubmitting}
                     ></textarea>
                   </div>
                   
-                  <Button type="submit" variant="hero" size="lg" className="w-full">
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
+                  {/* Success Message */}
+                  {submitStatus === 'success' && (
+                    <div className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-800">
+                      <p className="font-medium">Message sent successfully!</p>
+                      <p className="text-sm">I'll get back to you soon.</p>
+                    </div>
+                  )}
+                  
+                  {/* Error Message */}
+                  {submitStatus === 'error' && (
+                    <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
+                      <p className="font-medium">Error sending message</p>
+                      <p className="text-sm">{errorMessage}</p>
+                    </div>
+                  )}
+                  
+                  <Button 
+                    type="submit" 
+                    variant="hero" 
+                    size="lg" 
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
                   </Button>
                 </form>
               </div>
