@@ -54,7 +54,7 @@ A modern portfolio website built with Next.js, TypeScript, and Tailwind CSS, sho
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd veria-digital-studio
+cd foldername
 ```
 
 2. Install dependencies:
@@ -173,4 +173,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Built with ❤️ by [Miesieduo Veria](https://miesieduo.veria)
 # Achievement trigger
+bruh
 
