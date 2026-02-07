@@ -1,4 +1,4 @@
-# Miesieduo Veria Digital Studio
+# Miesieduo Veria Portfolio Website
 
 A modern portfolio website built with Next.js, TypeScript, and Tailwind CSS, showcasing multi-disciplinary creative work in web development, game development, photography, and music production.
 
