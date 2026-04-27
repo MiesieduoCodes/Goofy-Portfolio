@@ -14,7 +14,8 @@ import {
   Camera,
   X,
   Menu,
-  LogOut
+  LogOut,
+  Star
 } from "lucide-react"
 import { initializeApp } from "firebase/app"
 import { getFirestore, collection, onSnapshot, query } from "firebase/firestore"
@@ -104,6 +105,13 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       color: "text-gray-600"
     },
     {
+      title: "Digital Artifacts",
+      href: "/admin/artifacts",
+      icon: Star,
+      countKey: "websites", // Just a placeholder
+      color: "text-yellow-500"
+    },
+    {
       title: "Websites",
       href: "/admin/websites",
       icon: Globe,
@@ -115,7 +123,7 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       href: "/admin/games",
       icon: Gamepad2,
       countKey: "games",
-      color: "text-green-600"
+      color: "text-white"
     },
     {
       title: "Experiences",

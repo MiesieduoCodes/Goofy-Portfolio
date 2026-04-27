@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Globe, Gamepad2, Briefcase, Wrench, Camera, ArrowRight } from "lucide-react"
+import { Globe, Gamepad2, Briefcase, Wrench, Camera, ArrowRight, Star } from "lucide-react"
 import { initializeApp } from "firebase/app"
 import { getFirestore, collection, onSnapshot, query } from "firebase/firestore"
 
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
           </Card>
           <Card>
             <CardContent className="p-6">
-              <div className="text-3xl font-bold text-green-600">{counts.websites + counts.games}</div>
+              <div className="text-3xl font-bold text-white">{counts.websites + counts.games}</div>
               <p className="text-sm text-gray-600">Projects</p>
             </CardContent>
           </Card>
@@ -91,6 +91,29 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="hover:shadow-lg transition-shadow border-yellow-500/20 bg-yellow-500/[0.02]">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-3 rounded-lg bg-yellow-100">
+                  <Star className="w-6 h-6 text-yellow-600" />
+                </div>
+                <Badge variant="secondary" className="text-lg px-3 py-1">
+                  Homepage
+                </Badge>
+              </div>
+              <CardTitle className="text-xl">Digital Artifacts</CardTitle>
+              <CardDescription>Manage featured projects on your home page</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full bg-yellow-600 hover:bg-yellow-700">
+                <a href="/admin/artifacts" className="flex items-center justify-center gap-2">
+                  Edit Homepage Showcase
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -117,8 +140,8 @@ export default function AdminDashboard() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-green-100">
-                  <Gamepad2 className="w-6 h-6 text-green-600" />
+                <div className="p-3 rounded-lg bg-white">
+                  <Gamepad2 className="w-6 h-6 text-white" />
                 </div>
                 <Badge variant="secondary" className="text-lg px-3 py-1">
                   {counts.games}

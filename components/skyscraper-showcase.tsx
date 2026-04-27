@@ -493,8 +493,8 @@ export default function SkyscraperShowcase() {
       group.add(yellowLight)
       
       const greenLight = new THREE.Mesh(lightGeometry, new THREE.MeshStandardMaterial({
-        color: 0x00ff00,
-        emissive: 0x00ff00,
+        color: 0xffffff,
+        emissive: 0xffffff,
         emissiveIntensity: 0.3,
       }))
       greenLight.position.set(0, 3.95, 0.13)

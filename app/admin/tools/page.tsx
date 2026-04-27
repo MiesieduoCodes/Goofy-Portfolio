@@ -108,7 +108,7 @@ export default function AdminToolsPage() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "web": return "bg-blue-100 text-blue-800"
-      case "games": return "bg-green-100 text-green-800"
+      case "games": return "bg-white text-white"
       case "design": return "bg-purple-100 text-purple-800"
       case "other": return "bg-gray-100 text-gray-800"
       default: return "bg-gray-100 text-gray-800"

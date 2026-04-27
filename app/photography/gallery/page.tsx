@@ -19,7 +19,7 @@ export default function GalleryPage() {
         <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/50 pt-16 md:pt-24">
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-20 left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl animate-pulse-slow"></div>
-            <div className="absolute bottom-20 right-20 h-64 w-64 rounded-full bg-green-500/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
+            <div className="absolute bottom-20 right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }}></div>
           </div>
           <div className="container relative z-10 flex flex-col items-center text-center">
             <motion.div

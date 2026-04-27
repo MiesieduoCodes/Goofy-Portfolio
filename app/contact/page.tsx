@@ -1,354 +1,173 @@
-"use client"
+"use client";
 
-import { useState } from "react";
-import { MotionDiv } from "@/components/motion";
+import { useEffect, useState } from "react";
+import { initContact3D } from "../animations/contact3d";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Mail, Phone, MapPin, Send, X, Linkedin, Github, Instagram, Loader2 } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Loader2, Github, Linkedin, Instagram, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-const contactInfo = [
-  {
-    icon: Mail,
-    label: "Email",
-    value: "miesieduoveria@gmail.com",
-    href: "mailto:miesieduoveria@gmail.com",
-  },
-  {
-    icon: Phone,
-    label: "Phone",
-    value: "+234 906 046 2206",
-    href: "tel:+2349060462206",
-  },
-  {
-    icon: MapPin,
-    label: "Location",
-    value: "Nigeria",
-    href: "#",
-  },
-];
-
-const socialLinks = [
-  {
-    icon: Github,
-    href: "https://github.com/MiesieduoCodes",
-    label: "GitHub",
-  },
-  {
-    icon: Linkedin,
-    href: "https://ng.linkedin.com/in/goofydidthis",
-    label: "LinkedIn",
-  },
-  {
-    icon: X,
-    href: "https://x.com/MiesieduoVeria/",
-    label: "Twitter",
-  },
-  {
-    icon: Instagram,
-    href: "https://www.instagram.com/goofy_did_this/",
-    label: "Instagram",
-  },
-];
+import AmbientParticles from "@/components/ambient-particles";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  useEffect(() => {
+    // Ensuring DOM is fully painted before initializing 3D animations
+    const timer = setTimeout(() => {
+      initContact3D();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitStatus('idle');
-    setErrorMessage('');
-
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSubmitStatus('success');
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      } else {
-        setSubmitStatus('error');
-        setErrorMessage(data.message || 'Something went wrong. Please try again.');
-      }
-    } catch (error) {
-      setSubmitStatus('error');
-      setErrorMessage('Network error. Please try again.');
-    } finally {
+    // Simulate signal transmission
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      alert("Signal Received. Expect a transmission within 48 hours.");
+    }, 2000);
   };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black text-white overflow-hidden relative">
       <Navbar />
-      <main className="pt-24">
-        {/* Hero Section */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              Get In <span className="text-gradient">Touch</span>
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Ready to start your next project? Let's discuss how I can bring your ideas to life 
-              with technical excellence and creative innovation.
-            </p>
-          </MotionDiv>
+
+      {/* AMBIENT PARTICLES (REUSED FROM ABOUT) */}
+      <AmbientParticles />
+
+      {/* NOISE OVERLAY FOR STUDIO TEXTURE */}
+      <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+      <main className="pt-32 pb-20 px-6 md:px-12 relative z-10 perspective-[1200px]">
+
+        {/* HERO HEADER */}
+        <section className="mb-24 text-center">
+          <h1 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter uppercase italic">
+            Enter the <span className="text-white/20">Portal</span>
+          </h1>
+          <p className="text-white/40 max-w-2xl mx-auto text-lg md:text-xl font-light tracking-wide">
+            Let’s build something that doesn’t feel like a website.
+          </p>
         </section>
 
-        {/* Contact Content */}
-        <section className="container-custom py-16">
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <MotionDiv
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <div className="glass rounded-xl p-8">
-                <h2 className="font-display text-2xl font-bold mb-6">
-                  Send a <span className="text-gradient">Message</span>
-                </h2>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium mb-2">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
-                        placeholder="John Doe"
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
-                        placeholder="john@example.com"
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      id="subject"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Project Inquiry"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-2">
-                      Message
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      rows={6}
-                      className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors resize-none"
-                      placeholder="Tell me about your project..."
-                      required
-                      disabled={isSubmitting}
-                    ></textarea>
-                  </div>
-                  
-                  {/* Success Message */}
-                  {submitStatus === 'success' && (
-                    <div className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-800">
-                      <p className="font-medium">Message sent successfully!</p>
-                      <p className="text-sm">I'll get back to you soon.</p>
-                    </div>
-                  )}
-                  
-                  {/* Error Message */}
-                  {submitStatus === 'error' && (
-                    <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
-                      <p className="font-medium">Error sending message</p>
-                      <p className="text-sm">{errorMessage}</p>
-                    </div>
-                  )}
-                  
-                  <Button 
-                    type="submit" 
-                    variant="hero" 
-                    size="lg" 
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </div>
-            </MotionDiv>
+        {/* INTERACTIVE 3D GRID */}
+        <section className="grid lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
 
-            {/* Contact Info */}
-            <MotionDiv
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="space-y-8"
-            >
-              {/* Contact Details */}
-              <div className="glass rounded-xl p-8">
-                <h2 className="font-display text-2xl font-bold mb-6">
-                  Contact <span className="text-gradient">Information</span>
-                </h2>
-                
-                <div className="space-y-4">
-                  {contactInfo.map((info, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <info.icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">{info.label}</p>
-                        <Link
-                          href={info.href}
-                          className="font-medium hover:text-primary transition-colors"
-                        >
-                          {info.value}
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
+          {/* TRANSMISSION FORM */}
+          <div className="contact-card glass-dark p-8 md:p-12 rounded-2xl border border-white/5 relative group">
+            <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter italic">Send Transmission</h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Identity</label>
+                  <input
+                    required
+                    placeholder="Your Name"
+                    className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Frequency</label>
+                  <input
+                    required
+                    type="email"
+                    placeholder="Your Email"
+                    className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20"
+                  />
                 </div>
               </div>
 
-              {/* Social Links */}
-              <div className="glass rounded-xl p-8">
-                <h2 className="font-display text-2xl font-bold mb-6">
-                  Connect <span className="text-gradient">Online</span>
-                </h2>
-                
-                <p className="text-muted-foreground mb-6">
-                  Follow my work and connect on social media for updates and insights.
-                </p>
-                
-                <div className="flex gap-4">
-                  {socialLinks.map((social, index) => (
-                    <Link
-                      key={index}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
-                      aria-label={social.label}
-                    >
-                      <social.icon className="w-5 h-5" />
-                    </Link>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Objective</label>
+                <input
+                  required
+                  placeholder="Subject"
+                  className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20"
+                />
               </div>
 
-              {/* Response Time */}
-              <div className="glass rounded-xl p-8">
-                <h3 className="font-semibold text-lg mb-3">Response Time</h3>
-                <p className="text-muted-foreground">
-                  I typically respond to inquiries within 24-48 hours. For urgent matters, 
-                  please mention it in your message subject line.
-                </p>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Message Body</label>
+                <textarea
+                  required
+                  placeholder="Tell me about your project..."
+                  rows={5}
+                  className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20 resize-none"
+                />
               </div>
-            </MotionDiv>
+
+              <Button type="submit" disabled={isSubmitting} className="w-full h-16 text-lg font-black uppercase tracking-widest group relative overflow-hidden bg-white text-black hover:bg-white/90">
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <Send className="w-5 h-5" />}
+                  {isSubmitting ? "Syncing..." : "Send Signal"}
+                </span>
+              </Button>
+            </form>
           </div>
+
+          {/* CONTACT INFO SIDEBAR */}
+          <div className="space-y-8 flex flex-col justify-center">
+
+            <div className="contact-card glass-dark p-10 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
+              <h2 className="text-sm font-bold mb-8 uppercase tracking-[0.3em] text-white/30">Coordinates</h2>
+
+              <div className="space-y-6 text-white/70">
+                <a href="mailto:miesieduoveria@gmail.com" className="flex items-center gap-4 group hover:text-white transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-medium">miesieduoveria@gmail.com</span>
+                </a>
+                <a href="tel:+2349060462206" className="flex items-center gap-4 group hover:text-white transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-medium">+234 906 046 2206</span>
+                </a>
+                <div className="flex items-center gap-4 group">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-medium">Kazakhstan / Remote</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="contact-card glass-dark p-10 rounded-2xl border border-white/5">
+              <h2 className="text-sm font-bold mb-8 uppercase tracking-[0.3em] text-white/30">Neural Networks</h2>
+
+              <div className="flex gap-6">
+                {[
+                  { icon: Github, href: "https://github.com/MiesieduoCodes" },
+                  { icon: Linkedin, href: "https://ng.linkedin.com/in/goofydidthis" },
+                  { icon: Instagram, href: "https://www.instagram.com/goofy_did_this/" },
+                  { icon: X, href: "https://x.com/MiesieduoVeria/" }
+                ].map((social, i) => (
+                  <Link key={i} href={social.href} className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all transform hover:-translate-y-2">
+                    <social.icon className="w-6 h-6" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="contact-card glass-dark p-8 rounded-2xl border border-white/5 bg-primary/5">
+              <p className="text-white/40 text-sm leading-relaxed italic">
+                "Response window: 24–48 hours. <br />
+                Urgent? Mark your signal accordingly for prioritized bandwidth."
+              </p>
+            </div>
+
+          </div>
+
         </section>
 
-        {/* CTA Section */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Let's Create Something <span className="text-gradient">Amazing</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-              Whether you have a specific project in mind or just want to explore possibilities, 
-              I'm excited to hear from you and discuss how we can work together.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/work">
-                <Button variant="heroOutline" size="lg">
-                  View My Work
-                </Button>
-              </Link>
-              <Link href="/services">
-                <Button variant="heroOutline" size="lg">
-                  Learn About Services
-                </Button>
-              </Link>
-            </div>
-          </MotionDiv>
-        </section>
       </main>
+
       <Footer />
     </div>
   );

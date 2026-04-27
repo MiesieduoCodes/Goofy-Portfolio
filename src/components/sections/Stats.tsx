@@ -1,82 +1,86 @@
-'use client';
+"use client";
 
-import { motion } from "framer-motion";
-import { useEffect, useState, useRef } from "react";
+import { motion, useMotionValue, useSpring, useInView, animate, useTransform, useMotionValueEvent } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 const stats = [
   { value: 4, suffix: "+", label: "Years Experience" },
-  { value: 10, suffix: "+", label: "Projects Delivered" },
-  { value: 300, suffix: "k", label: "Lines of Code" },
+  { value: 20, suffix: "+", label: "Projects Completed" },
+  { value: 300, suffix: "k+", label: "Lines of Code" },
   { value: 3, suffix: "", label: "Instruments Mastered" },
 ];
 
-function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
+function SmoothCounter({ value, suffix }: { value: number; suffix: string }) {
+  const count = useMotionValue(0);
+  const spring = useSpring(count, { stiffness: 60, damping: 20 });
+  const display = useTransform(spring, (val) => Math.floor(val));
+  const [roundedValue, setRoundedValue] = useState(0);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
+  useMotionValueEvent(display, "change", (latest) => {
+    setRoundedValue(latest);
+  });
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          let start = 0;
-          const duration = 2000;
-          const step = Math.ceil(value / (duration / 16));
-          
-          const timer = setInterval(() => {
-            start += step;
-            if (start >= value) {
-              setCount(value);
-              clearInterval(timer);
-            } else {
-              setCount(start);
-            }
-          }, 16);
-
-          return () => clearInterval(timer);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (inView) {
+      animate(count, value, { duration: 2, ease: "easeOut" });
     }
-
-    return () => observer.disconnect();
-  }, [value, hasAnimated]);
+  }, [inView, value, count]);
 
   return (
-    <span ref={ref} className="stat-number">
-      {count}
-      {suffix}
-    </span>
+    <motion.span
+      ref={ref}
+      className="text-4xl md:text-5xl font-black tracking-tight text-foreground"
+    >
+      {roundedValue}{suffix}
+    </motion.span>
   );
 }
 
 export function Stats() {
   return (
-    <section className="py-16 md:py-24 bg-background border-t border-b border-border">
+    <section className="py-20 bg-black">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12"
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="flex flex-wrap justify-center gap-6 md:gap-10"
         >
           {stats.map((stat, index) => (
             <motion.div
-              key={stat.label}
+              key={index}
+              className="
+                group relative backdrop-blur-sm
+                border border-white/10 
+                bg-white/[0.02]
+                rounded-2xl p-6 text-center
+                transition-all duration-500
+                w-[160px] md:w-[240px]
+              "
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="text-center"
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              whileHover={{
+                scale: 1.03,
+                rotateX: 5,
+                rotateY: -5,
+                transition: { duration: 0.4 },
+              }}
             >
-              <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-              <p className="text-xs md:text-sm uppercase tracking-wider text-muted-foreground mt-2">
+              {/* subtle glow border on hover */}
+              <div className="
+                absolute inset-0 rounded-2xl opacity-0 
+                group-hover:opacity-100 transition-opacity duration-500
+                bg-gradient-to-br from-white/10 to-white/5
+              " />
+
+              <SmoothCounter value={stat.value} suffix={stat.suffix} />
+
+              <p className="mt-3 text-xs md:text-sm uppercase tracking-widest text-muted-foreground">
                 {stat.label}
               </p>
             </motion.div>

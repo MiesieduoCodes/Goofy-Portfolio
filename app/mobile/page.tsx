@@ -206,8 +206,8 @@ export default function MobilePage() {
                   />
                   <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300"></div>
                   <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg px-2 py-1">
-                    <Download className="w-4 h-4 text-green-400 inline mr-1" />
-                    <span className="text-xs text-green-400 font-medium">{app.downloads}</span>
+                    <Download className="w-4 h-4 text-white inline mr-1" />
+                    <span className="text-xs text-white font-medium">{app.downloads}</span>
                   </div>
                 </div>
                 <div className="p-6">

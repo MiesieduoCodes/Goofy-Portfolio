@@ -1,5 +1,8 @@
+import { Navbar } from '@/components/layout/Navbar'
 import type { Metadata } from 'next'
 import './globals.css'
+import CursorInit from '@/components/cursor-init'
+import { LayoutProvider } from '@/components/providers/LayoutProvider'
 
 export const metadata: Metadata = {
   title: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
@@ -63,7 +66,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-background text-foreground antialiased">
-        {children}
+        <LayoutProvider>
+          <Navbar />
+          {children}
+          <CursorInit />
+        </LayoutProvider>
       </body>
     </html>
   )

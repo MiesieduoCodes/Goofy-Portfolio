@@ -19,11 +19,29 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        display: ['system-ui', 'sans-serif'],
+        sans: ['"Satoshi"', 'system-ui', 'sans-serif'],
+        display: ['"Satoshi"', 'system-ui', 'sans-serif'],
       },
       colors: {
-        border: "hsl(var(--border))",
+        bg: "#000000",
+        soft: "#111111",
+        text: "#ffffff",
+        muted: {
+          DEFAULT: "#a1a1a1",
+          foreground: "#a1a1a1",
+        },
+        mono: {
+          100: "#ffffff",
+          200: "#f5f5f5",
+          300: "#e5e5e5",
+          400: "#c4c4c4",
+          500: "#a3a3a3",
+          600: "#737373",
+          700: "#525252",
+          800: "#2e2e2e",
+          900: "#000000",
+        },
+        border: "#2a2a2a",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -39,10 +57,6 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",

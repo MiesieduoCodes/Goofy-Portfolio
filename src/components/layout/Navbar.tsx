@@ -1,177 +1,155 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { Menu, X, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
-const navLinks = [
-  { name: "Work", href: "/work" },
-  { name: "Services", href: "/services" },
-  { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+const routes = [
+  { href: "/about", label: "About" },
+  { href: "/work", label: "Work" },
+  { href: "/services", label: "Services" },
+  { href: "/games", label: "Game Dev" },
+  { href: "/photography", label: "Photography" },
+  { href: "/contact", label: "Contact" },
 ];
 
+const MenuItem = ({ label, href, index, onClick }: any) => {
+  return (
+    <motion.div
+      initial={{ x: 100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 100, opacity: 0 }}
+      transition={{
+        delay: 0.15 + index * 0.08,
+        duration: 0.6,
+        ease: [0.34, 1.56, 0.64, 1],
+      }}
+      className="group inline-block w-fit"
+    >
+      <Link 
+        href={href} 
+        onClick={onClick} 
+        className="text-5xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter block relative px-6 py-2 transition-all duration-500 bg-transparent group-hover:bg-white text-white group-hover:text-black"
+      >
+        <span className="relative z-10 transition-transform duration-500 group-hover:-translate-x-2 inline-block">
+          {label}
+        </span>
+      </Link>
+    </motion.div>
+  );
+};
+
 export function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
   const pathname = usePathname();
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = 'unset';
+    const move = (e: MouseEvent) => {
+      setCursor({ x: e.clientX, y: e.clientY });
     };
-  }, [isMobileMenuOpen]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
   }, []);
 
+  // Prevent body scroll and hide scrollbar when menu is open
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    const html = document.documentElement;
+    if (isOpen) {
+      console.log("Menu Open: Adding menu-open class");
+      html.classList.add('menu-open');
+    } else {
+      console.log("Menu Closed: Removing menu-open class");
+      html.classList.remove('menu-open');
+    }
+    return () => {
+      html.classList.remove('menu-open');
+    };
+  }, [isOpen]);
+
+  // Close menu on navigation
+  useEffect(() => {
+    setIsOpen(false);
   }, [pathname]);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "glass py-4 " : "bg-transparent py-7"
-      }`}
-    >
-      <nav className="container-custom flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110">
-            <Zap className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="font-display font-bold text-lg tracking-tight">
-            MIESIEDUO VERIA
-          </span>
-        </Link>
+    <>
+      {/* NAVBAR HEADER */}
+      <motion.header
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ 
+          y: isOpen ? -120 : 0, 
+          opacity: isOpen ? 0 : 1 
+        }}
+        transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
+        className="fixed top-0 left-0 w-full z-[999] bg-black/30 backdrop-blur-md border-b border-white/10"
+      >
+        <div className="container-custom flex h-24 items-center justify-between relative">
+          <Link href="/" className="text-2xl md:text-3xl font-black tracking-tight hover:scale-[1.02] transition-transform">
+            MiesieduoVeria.
+          </Link>
 
-        {/* Desktop Navigation - Centered */}
-        <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className={`relative text-sm font-medium transition-colors hover:text-foreground group ${
-                pathname === link.href
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {link.name}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-          ))}
-        </div>
-
-        {/* Contact Button - Right */}
-        <Button variant="default" size="sm" asChild className="hidden md:flex">
-          <Link href="/contact">Contact Me</Link>
-        </Button>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 text-foreground relative w-8 h-8 flex items-center justify-center"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <div className="relative w-6 h-6 flex items-center justify-center">
-            {/* Hamburger Icon */}
-            <motion.div
-              animate={{
-                opacity: isMobileMenuOpen ? 0 : 1,
-                scale: isMobileMenuOpen ? 0.8 : 1
-              }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute inset-0 flex flex-col justify-center gap-1"
-            >
-              <div className="w-6 h-0.5 bg-current"></div>
-              <div className="w-6 h-0.5 bg-current"></div>
-              <div className="w-6 h-0.5 bg-current"></div>
-            </motion.div>
-            
-            {/* X Icon */}
-            <motion.div
-              animate={{
-                opacity: isMobileMenuOpen ? 1 : 0,
-                scale: isMobileMenuOpen ? 1 : 0.8
-              }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <X className="w-6 h-6" />
-            </motion.div>
-          </div>
-        </button>
-      </nav>
-
-      {/* Mobile Menu - Full Screen Overlay */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: "-100%" }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: "-100%" }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed inset-0 z-50 bg-gradient-to-br from-background via-background to-primary/5 backdrop-blur-lg md:hidden"
+          {/* JUST 'MENU' TEXT (NO BG, NO BORDER) */}
+          <button 
+            onClick={() => setIsOpen(true)} 
+            className="text-sm md:text-base font-black uppercase tracking-[0.3em] text-white bg-transparent border-none outline-none p-0 cursor-pointer"
           >
-            <div className="flex flex-col items-center justify-center min-h-screen gap-8 p-8">
-              {navLinks.map((link, index) => (
-                <motion.div
-                  key={link.name}
-                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 0.1, ease: "easeOut", delay: index * 0.05 }}
-                >
-                  <Link
-                    href={link.href}
-                    className={`text-2xl font-bold ${
-                      pathname === link.href
-                        ? "text-primary"
-                        : "text-muted-foreground"
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.name}
-                  </Link>
-                </motion.div>
-              ))}
-              
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.1, ease: "easeOut", delay: 0.2 }}
-              >
-                <Button 
-                  variant="default" 
-                  size="lg" 
-                  className="mt-8" 
-                  asChild
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Link href="/contact">Contact Me</Link>
-                </Button>
-              </motion.div>
-            </div>
+            Menu →
+          </button>
+        </div>
+      </motion.header>
+
+      {/* FULLSCREEN MENU */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000]"
+          >
+            {/* CLOSE BUTTON */}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed top-8 right-8 z-[1001] p-4 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-all group"
+            >
+              <div className="relative w-10 h-10 flex items-center justify-center">
+                <div className="absolute w-10 h-0.5 bg-current rotate-45"></div>
+                <div className="absolute w-10 h-0.5 bg-current -rotate-45"></div>
+              </div>
+            </motion.button>
+
+            {/* Viewport-Relative Cursor Blob */}
+            <motion.div
+              animate={{ 
+                x: cursor.x - 20, 
+                y: cursor.y - 20 
+              }}
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              className="fixed z-[1000] w-12 h-12 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 pointer-events-none"
+            />
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: "-2%" }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+              className="fixed inset-0 z-[998] bg-black/80 backdrop-blur-2xl flex flex-col justify-start pt-32 md:pt-40 px-10 md:px-20 overflow-y-auto"
+            >
+              <nav className="flex flex-col gap-6 md:gap-10 pb-20">
+                {routes.map((route, i) => (
+                  <MenuItem key={route.href} label={route.label} href={route.href} index={i} onClick={() => setIsOpen(false)} />
+                ))}
+              </nav>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
