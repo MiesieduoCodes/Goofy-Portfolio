@@ -4,22 +4,10 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Globe, Gamepad2, Briefcase, Wrench, Camera, ArrowRight, Star } from "lucide-react"
-import { initializeApp } from "firebase/app"
-import { getFirestore, collection, onSnapshot, query } from "firebase/firestore"
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-}
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+import { Globe, Gamepad2, Briefcase, Wrench, Camera, ArrowRight, Star, LayoutDashboard } from "lucide-react"
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot, query } from "firebase/firestore"
+import AdminLayout from "./components/AdminLayout"
 
 export default function AdminDashboard() {
   const [counts, setCounts] = useState({
@@ -42,228 +30,214 @@ export default function AdminDashboard() {
   const totalItems = Object.values(counts).reduce((sum, count) => sum + count, 0)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Simple Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Manage your portfolio content</p>
-            </div>
-            <Badge variant="outline" className="text-lg px-3 py-1">
-              {totalItems} Total Items
-            </Badge>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AdminLayout title="Admin Dashboard" description="Overview of your portfolio content">
+      <div className="container-custom py-8 space-y-8">
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border border-border bg-card">
             <CardContent className="p-6">
-              <div className="text-3xl font-bold">{totalItems}</div>
-              <p className="text-sm text-gray-600">Total Items</p>
+              <div className="text-3xl font-bold text-foreground">{totalItems}</div>
+              <p className="text-sm text-muted-foreground">Total Items</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border border-border bg-card">
             <CardContent className="p-6">
-              <div className="text-3xl font-bold text-white">{counts.websites + counts.games}</div>
-              <p className="text-sm text-gray-600">Projects</p>
+              <div className="text-3xl font-bold text-blue-400">{counts.websites + counts.games}</div>
+              <p className="text-sm text-muted-foreground">Projects</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border border-border bg-card">
             <CardContent className="p-6">
-              <div className="text-3xl font-bold text-purple-600">{counts.experiences}</div>
-              <p className="text-sm text-gray-600">Experiences</p>
+              <div className="text-3xl font-bold text-purple-400">{counts.experiences}</div>
+              <p className="text-sm text-muted-foreground">Experiences</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border border-border bg-card">
             <CardContent className="p-6">
-              <div className="text-3xl font-bold text-orange-600">{counts.tools}</div>
-              <p className="text-sm text-gray-600">Skills</p>
+              <div className="text-3xl font-bold text-orange-400">{counts.tools}</div>
+              <p className="text-sm text-muted-foreground">Skills</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow border-yellow-500/20 bg-yellow-500/[0.02]">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-yellow-100">
-                  <Star className="w-6 h-6 text-yellow-600" />
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Quick Actions</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:shadow-lg transition-all border border-yellow-500/20 bg-yellow-500/[0.02] hover:bg-yellow-500/[0.04]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-yellow-500/10 text-yellow-500">
+                    <Star className="w-6 h-6" />
+                  </div>
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500/30">
+                    Homepage
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  Homepage
-                </Badge>
-              </div>
-              <CardTitle className="text-xl">Digital Artifacts</CardTitle>
-              <CardDescription>Manage featured projects on your home page</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full bg-yellow-600 hover:bg-yellow-700">
-                <a href="/admin/artifacts" className="flex items-center justify-center gap-2">
-                  Edit Homepage Showcase
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-xl text-foreground">Digital Artifacts</CardTitle>
+                <CardDescription className="text-muted-foreground">Manage featured projects on your home page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
+                  <a href="/admin/artifacts" className="flex items-center justify-center gap-2">
+                    Edit Homepage Showcase
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-blue-100">
-                  <Globe className="w-6 h-6 text-blue-600" />
+            <Card className="hover:shadow-lg transition-all border border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.04]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400">
+                    <Globe className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {counts.websites} Items
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {counts.websites}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl">Websites</CardTitle>
-              <CardDescription>Manage web development projects</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <a href="/admin/websites" className="flex items-center justify-center gap-2">
-                  Manage Websites
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-xl text-foreground">Websites</CardTitle>
+                <CardDescription className="text-muted-foreground">Manage web development projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  <a href="/admin/websites" className="flex items-center justify-center gap-2">
+                    Manage Websites
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-white">
-                  <Gamepad2 className="w-6 h-6 text-white" />
+            <Card className="hover:shadow-lg transition-all border border-zinc-500/20 bg-zinc-500/[0.02] hover:bg-zinc-500/[0.04]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-zinc-800 text-white">
+                    <Gamepad2 className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-zinc-500/10 text-zinc-300 border border-zinc-500/20">
+                    {counts.games} Items
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {counts.games}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl">Games</CardTitle>
-              <CardDescription>Manage game development projects</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <a href="/admin/games" className="flex items-center justify-center gap-2">
-                  Manage Games
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-xl text-foreground">Games</CardTitle>
+                <CardDescription className="text-muted-foreground">Manage game development projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full bg-zinc-700 hover:bg-zinc-800 text-white">
+                  <a href="/admin/games" className="flex items-center justify-center gap-2">
+                    Manage Games
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-purple-100">
-                  <Briefcase className="w-6 h-6 text-purple-600" />
+            <Card className="hover:shadow-lg transition-all border border-purple-500/20 bg-purple-500/[0.02] hover:bg-purple-500/[0.04]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-purple-500/10 text-purple-400">
+                    <Briefcase className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                    {counts.experiences} Items
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {counts.experiences}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl">Experiences</CardTitle>
-              <CardDescription>Manage work experience and timeline</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <a href="/admin/experiences" className="flex items-center justify-center gap-2">
-                  Manage Experiences
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-xl text-foreground">Experiences</CardTitle>
+                <CardDescription className="text-muted-foreground">Manage work experience and timeline</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                  <a href="/admin/experiences" className="flex items-center justify-center gap-2">
+                    Manage Experiences
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-orange-100">
-                  <Wrench className="w-6 h-6 text-orange-600" />
+            <Card className="hover:shadow-lg transition-all border border-orange-500/20 bg-orange-500/[0.02] hover:bg-orange-500/[0.04]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-orange-500/10 text-orange-400">
+                    <Wrench className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                    {counts.tools} Items
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {counts.tools}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl">Tools & Skills</CardTitle>
-              <CardDescription>Manage technical tools and skill levels</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <a href="/admin/tools" className="flex items-center justify-center gap-2">
-                  Manage Tools
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-xl text-foreground">Tools & Skills</CardTitle>
+                <CardDescription className="text-muted-foreground">Manage technical tools and skill levels</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                  <a href="/admin/tools" className="flex items-center justify-center gap-2">
+                    Manage Tools
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="p-3 rounded-lg bg-pink-100">
-                  <Camera className="w-6 h-6 text-pink-600" />
+            <Card className="hover:shadow-lg transition-all border border-pink-500/20 bg-pink-500/[0.02] hover:bg-pink-500/[0.04]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-pink-500/10 text-pink-400">
+                    <Camera className="w-6 h-6" />
+                  </div>
+                  <Badge variant="secondary" className="bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                    {counts.photos} Items
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {counts.photos}
-                </Badge>
-              </div>
-              <CardTitle className="text-xl">Photo Gallery</CardTitle>
-              <CardDescription>Manage photography portfolio</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <a href="/admin/photos" className="flex items-center justify-center gap-2">
-                  Manage Photos
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-xl text-foreground">Photo Gallery</CardTitle>
+                <CardDescription className="text-muted-foreground">Manage photography portfolio</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full bg-pink-600 hover:bg-pink-700 text-white">
+                  <a href="/admin/photos" className="flex items-center justify-center gap-2">
+                    Manage Photos
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Quick Links */}
-        <Card>
+        <Card className="border border-border bg-card">
           <CardHeader>
-            <CardTitle>Quick Preview</CardTitle>
-            <CardDescription>View your portfolio pages</CardDescription>
+            <CardTitle className="text-foreground">Quick Preview</CardTitle>
+            <CardDescription className="text-muted-foreground">View your portfolio pages</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button asChild variant="outline" className="w-full justify-start">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
               <a href="/work" target="_blank">
-                <Globe className="w-4 h-4 mr-2" />
+                <Globe className="w-4 h-4 mr-2 text-blue-400" />
                 Portfolio Overview
               </a>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
               <a href="/games" target="_blank">
-                <Gamepad2 className="w-4 h-4 mr-2" />
+                <Gamepad2 className="w-4 h-4 mr-2 text-zinc-400" />
                 Games Portfolio
               </a>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
               <a href="/web" target="_blank">
-                <Globe className="w-4 h-4 mr-2" />
+                <Globe className="w-4 h-4 mr-2 text-emerald-400" />
                 Web Projects
               </a>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
+            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
               <a href="/about" target="_blank">
-                <Briefcase className="w-4 h-4 mr-2" />
+                <Briefcase className="w-4 h-4 mr-2 text-purple-400" />
                 About Page
               </a>
             </Button>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminLayout>
   )
-}
+}

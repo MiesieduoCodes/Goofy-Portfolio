@@ -8,21 +8,8 @@ import { Camera, Eye, Download, Calendar, MapPin, X, ArrowRight } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { initializeApp } from "firebase/app"
-import { getFirestore, collection, onSnapshot, query, orderBy } from "firebase/firestore"
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-}
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore"
 
 const photographyCategories = [
   {

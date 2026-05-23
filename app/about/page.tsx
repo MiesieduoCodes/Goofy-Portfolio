@@ -8,26 +8,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import gsap from "gsap";
 import AmbientParticles from "@/components/ambient-particles";
 import PhotoCarousel from "@/components/photo-carousel";
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const skills = {
   development: ["React / Next.js", "C# / Unity", "Tailwind CSS"],

@@ -10,6 +10,9 @@ interface ProjectOverlayProps {
     id: string;
     title: string;
     description: string;
+    image?: string;
+    images?: string[];
+    tags?: string[];
   } | null;
   originRect: DOMRect | null;
   onClose: () => void;
@@ -133,7 +136,7 @@ export default function ProjectOverlay({ project, originRect, onClose }: Project
               </p>
               
               <div className="flex flex-wrap gap-4 pt-10">
-                {["Experience", "Strategy", "Motion"].map((tag) => (
+                {(project.tags && project.tags.length > 0 ? project.tags : ["Experience", "Strategy", "Motion"]).map((tag) => (
                   <span key={tag} className="px-8 py-3 rounded-full border border-white/10 text-sm font-mono uppercase tracking-widest text-white/40">
                     {tag}
                   </span>
@@ -142,8 +145,34 @@ export default function ProjectOverlay({ project, originRect, onClose }: Project
             </div>
 
             <div className="space-y-10">
-               <div className="aspect-video bg-white/5 rounded-[40px] animate-pulse" />
-               <div className="aspect-square bg-white/5 rounded-[40px] animate-pulse" />
+              {project.images && project.images.length > 0 ? (
+                project.images.map((imgUrl, index) => (
+                  <div 
+                    key={index} 
+                    className="relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-white/10 bg-white/5 group shadow-2xl"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`${project.title} screenshot ${index + 1}`}
+                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                ))
+              ) : project.image ? (
+                <div className="relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-white/10 bg-white/5 group shadow-2xl">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="aspect-video bg-white/5 rounded-[40px] animate-pulse" />
+                  <div className="aspect-square bg-white/5 rounded-[40px] animate-pulse" />
+                </>
+              )}
             </div>
           </div>
         </div>

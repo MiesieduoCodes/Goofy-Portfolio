@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { MotionDiv } from "@/components/motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,37 +10,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { initializeApp } from "firebase/app"
-import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-}
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
-const storage = getStorage(app)
+import { db, storage } from "@/lib/firebase"
+import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
 
 export default function AdminGamesPage() {
   const [games, setGames] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     image: "",
+    images: [] as string[],
     link: "",
     tags: "",
     category: "games",
     featured: false
   })
+  const formRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const unsubscribe = onSnapshot(query(collection(db, "games"), orderBy("createdAt", "desc")), (snapshot) => {
@@ -49,39 +40,88 @@ export default function AdminGamesPage() {
     return unsubscribe
   }, [])
 
+  // Auto-edit from URL query param
+  useEffect(() => {
+    if (typeof window !== "undefined" && games.length > 0) {
+      const params = new URLSearchParams(window.location.search)
+      const editId = params.get("edit")
+      if (editId) {
+        const item = games.find(g => g.id === editId)
+        if (item) {
+          handleEdit(item)
+          // Clean URL parameter so it doesn't re-trigger on subsequent updates
+          const newUrl = window.location.pathname
+          window.history.replaceState({}, "", newUrl)
+        }
+      }
+    }
+  }, [games])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSuccess(null)
+    setError(null)
     try {
-      const data = { ...formData, tags: formData.tags.split(",").map(t => t.trim()).filter(t => t) }
+      const parsedTags = typeof formData.tags === "string" 
+        ? formData.tags.split(",").map(t => t.trim()).filter(t => t)
+        : Array.isArray(formData.tags) 
+          ? formData.tags 
+          : []
+
+      const data = { ...formData, tags: parsedTags }
       if (editingId) {
         await updateDoc(doc(db, "games", editingId), { ...data, updatedAt: Date.now() })
+        setSuccess("✅ Game updated successfully!")
       } else {
         await setDoc(doc(collection(db, "games")), { ...data, createdAt: Date.now() })
+        setSuccess("✅ Game added successfully!")
       }
-      setFormData({ title: "", description: "", image: "", link: "", tags: "", category: "games", featured: false })
+      setFormData({ title: "", description: "", image: "", images: [], link: "", tags: "", category: "games", featured: false })
       setEditingId(null)
-    } catch (error) {
-      console.error("Error:", error)
+    } catch (err: any) {
+      console.error("Error:", err)
+      setError(err?.message || "❌ Error saving game. Please try again.")
     }
   }
 
   const handleDelete = async (id: string) => {
+    setSuccess(null)
+    setError(null)
     if (confirm("Delete this game?")) {
-      await deleteDoc(doc(db, "games", id))
+      try {
+        await deleteDoc(doc(db, "games", id))
+        setSuccess("✅ Game deleted successfully!")
+      } catch (err: any) {
+        console.error("Error:", err)
+        setError(err?.message || "❌ Error deleting game. Please try again.")
+      }
     }
   }
 
   const handleEdit = (game: any) => {
+    setSuccess(null)
+    setError(null)
+
+    let tagsString = ""
+    if (Array.isArray(game.tags)) {
+      tagsString = game.tags.join(", ")
+    } else if (typeof game.tags === "string") {
+      tagsString = game.tags
+    }
+
     setFormData({
       title: game.title || "",
       description: game.description || "",
       image: game.image || "",
+      images: game.images || [],
       link: game.link || "",
-      tags: (game.tags || []).join(", "),
+      tags: tagsString,
       category: game.category || "games",
       featured: game.featured || false
     })
     setEditingId(game.id)
+    // Scroll to form
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,14 +140,44 @@ export default function AdminGamesPage() {
     }
   }
 
+  // Handle multiple screenshot uploads
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingScreenshots(true)
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const ref = storageRef(storage, `games/screenshots/${Date.now()}-${file.name}`)
+        await uploadBytes(ref, file)
+        return getDownloadURL(ref)
+      })
+      const urls = await Promise.all(uploadPromises)
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
+    } catch (error) {
+      console.error("Upload error:", error)
+    } finally {
+      setUploadingScreenshots(false)
+      e.target.value = ""
+    }
+  }
+
+  // Remove a screenshot by index
+  const removeScreenshot = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
+  }
+
   return (
     <AdminLayout title="Game Management" description="Manage your game development portfolio projects">
       <div className="container-custom py-8">
         <MotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Form */}
-            <div className="lg:col-span-1">
-              <Card>
+            <div className="lg:col-span-1" ref={formRef}>
+              <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
@@ -116,6 +186,16 @@ export default function AdminGamesPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {success && (
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                        {success}
+                      </div>
+                    )}
+                    {error && (
+                      <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                        {error}
+                      </div>
+                    )}
                     <div>
                       <Label>Title</Label>
                       <Input value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="Game name" required />
@@ -144,16 +224,46 @@ export default function AdminGamesPage() {
                         </div>
                       )}
                     </div>
+                    <div>
+                      <Label>Project Screenshots</Label>
+                      <p className="text-xs text-muted-foreground mb-2">Upload multiple views/screenshots</p>
+                      <Input type="file" accept="image/*" multiple onChange={handleScreenshotUpload} disabled={uploadingScreenshots} />
+                      {uploadingScreenshots && (
+                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                      )}
+                      {formData.images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          {formData.images.map((imgUrl, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={imgUrl}
+                                alt={`Screenshot ${idx + 1}`}
+                                className="w-full h-20 object-cover rounded-md border border-border"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => removeScreenshot(idx)}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="featured" checked={formData.featured} onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))} className="rounded" />
                       <Label htmlFor="featured">Featured</Label>
                     </div>
                     <div className="flex gap-2">
-                      <Button type="submit" className="flex-1" disabled={uploading}>
-                        {uploading ? "Uploading..." : (editingId ? "Update" : "Add")}
+                      <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
+                        {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add")}
                       </Button>
                       {editingId && (
-                        <Button type="button" variant="outline" onClick={() => { setEditingId(null); setFormData({ title: "", description: "", image: "", link: "", tags: "", category: "games", featured: false }); }}>
+                        <Button type="button" variant="outline" onClick={() => { setSuccess(null); setError(null); setEditingId(null); setFormData({ title: "", description: "", image: "", images: [], link: "", tags: "", category: "games", featured: false }); }}>
                           Cancel
                         </Button>
                       )}
@@ -202,6 +312,18 @@ export default function AdminGamesPage() {
                           </div>
                           {game.image && (
                             <img src={game.image} alt={game.title} className="w-full h-32 object-cover rounded-md" />
+                          )}
+                          {game.images && game.images.length > 0 && (
+                            <div className="flex gap-2 mt-2 overflow-x-auto">
+                              {game.images.map((imgUrl: string, idx: number) => (
+                                <img
+                                  key={idx}
+                                  src={imgUrl}
+                                  alt={`${game.title} screenshot ${idx + 1}`}
+                                  className="h-16 w-24 object-cover rounded-md border border-border flex-shrink-0"
+                                />
+                              ))}
+                            </div>
                           )}
                         </div>
                       ))

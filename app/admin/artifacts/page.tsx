@@ -5,23 +5,12 @@ import { MotionDiv } from "@/components/motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Globe, Gamepad2, Star, Trash2, ExternalLink, ArrowRight } from "lucide-react"
+import { Globe, Gamepad2, Star, Trash2, ExternalLink, ArrowRight, Camera } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { initializeApp } from "firebase/app"
-import { getFirestore, collection, onSnapshot, query, where, doc, updateDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot, query, where, doc, updateDoc } from "firebase/firestore"
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-}
 
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
 
 export default function AdminArtifactsPage() {
   const [artifacts, setArtifacts] = useState<any[]>([])
@@ -32,9 +21,10 @@ export default function AdminArtifactsPage() {
     
     let websites: any[] = []
     let games: any[] = []
+    let photos: any[] = []
 
     const update = () => {
-      const merged = [...websites, ...games].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      const merged = [...websites, ...games, ...photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
       setArtifacts(merged)
       setLoading(false)
     }
@@ -50,9 +40,15 @@ export default function AdminArtifactsPage() {
       update()
     })
 
+    const unsubPhotos = onSnapshot(collection(db, "photos"), (snap) => {
+      photos = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), collection: "photos" }))
+      update()
+    })
+
     return () => {
       unsubWebsites()
       unsubGames()
+      unsubPhotos()
     }
   }, [])
 
@@ -119,7 +115,13 @@ export default function AdminArtifactsPage() {
                         <img src={artifact.image} alt={artifact.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="flex items-center justify-center h-full">
-                          {artifact.collection === 'websites' ? <Globe className="w-10 h-10 text-muted-foreground/30" /> : <Gamepad2 className="w-10 h-10 text-muted-foreground/30" />}
+                          {artifact.collection === 'websites' ? (
+                            <Globe className="w-10 h-10 text-muted-foreground/30" />
+                          ) : artifact.collection === 'games' ? (
+                            <Gamepad2 className="w-10 h-10 text-muted-foreground/30" />
+                          ) : (
+                            <Camera className="w-10 h-10 text-muted-foreground/30" />
+                          )}
                         </div>
                       )}
                       <div className="absolute top-2 right-2">
@@ -137,7 +139,7 @@ export default function AdminArtifactsPage() {
                     <CardHeader className="p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
-                          {artifact.collection === 'websites' ? 'Website' : 'Game'}
+                          {artifact.collection === 'websites' ? 'Website' : artifact.collection === 'games' ? 'Game' : 'Photography'}
                         </Badge>
                       </div>
                       <CardTitle className="text-lg line-clamp-1">{artifact.title}</CardTitle>
@@ -146,11 +148,11 @@ export default function AdminArtifactsPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-0 flex gap-2">
-                       <Button asChild size="sm" variant="outline" className="flex-1 text-xs">
-                          <a href={artifact.collection === 'websites' ? '/admin/websites' : '/admin/games'}>
-                             <ArrowRight className="w-3 h-3 mr-1" /> Edit Source
-                          </a>
-                       </Button>
+                        <Button asChild size="sm" variant="outline" className="flex-1 text-xs">
+                           <a href={`${artifact.collection === 'websites' ? '/admin/websites' : artifact.collection === 'games' ? '/admin/games' : '/admin/photos'}?edit=${artifact.id}`}>
+                              <ArrowRight className="w-3 h-3 mr-1" /> Edit Source
+                           </a>
+                        </Button>
                     </CardContent>
                   </Card>
                 ))}

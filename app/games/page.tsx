@@ -8,32 +8,17 @@ import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Gamepad2, Code, Zap, Layers, Palette, Cpu } from "lucide-react"
 import dynamic from "next/dynamic"
-import { initializeApp } from "firebase/app"
-import { getFirestore, collection, onSnapshot, query } from "firebase/firestore"
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-}
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot, query } from "firebase/firestore"
 
 // Use dynamic import with SSR disabled for Three.js component
-const SkyscraperShowcase = dynamic(() => import("@/components/skyscraper-showcase"), {
+const PhaserGame = dynamic(() => import("@/components/phaser-game"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex h-full w-full items-center justify-center">
       <div className="flex flex-col items-center gap-2">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-yellow-400 border-t-transparent"></div>
-        <p className="text-sm text-yellow-400">Loading skyscraper...</p>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <p className="text-sm text-muted-foreground">Loading game...</p>
       </div>
     </div>
   ),
@@ -146,9 +131,9 @@ export default function GamesPage() {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="h-[700px] w-full overflow-hidden rounded-2xl border-2 border-primary/20 shadow-2xl ring-4 ring-primary/5 bg-gradient-to-b from-slate-900 to-slate-950"
+            className="h-[450px] w-full overflow-hidden rounded-2xl border-2 border-primary/20 shadow-2xl ring-4 ring-primary/5 bg-gradient-to-b from-slate-900 to-slate-950"
           >
-            <SkyscraperShowcase />
+            <PhaserGame />
           </MotionDiv>
         </section>
 

@@ -4,43 +4,43 @@ service cloud.firestore {
     // Allow read access to all collections for authenticated and unauthenticated users
     match /{document=**} {
       allow read: if true;
-      allow write: if false; // Deny write access from client for security
+      allow write: if true; // Allow write access from client for development/admin dashboard
     }
     
     // Specific rules for collections
     match /websites/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
     match /games/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
     match /experiences/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
     match /tools/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
     match /skills/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
     match /techs/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
     match /photos/{document} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
   }
 }

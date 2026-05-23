@@ -7,26 +7,10 @@ import { Footer } from "@/components/layout/Footer";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-// Firebase
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query } from "firebase/firestore";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04",
-};
-
-// Init Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const categories = ["All", "Websites", "Games"];
+const categories = ["All", "Websites", "Games", "Photography"];
 
 export default function Work() {
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -49,12 +33,14 @@ export default function Work() {
 
     const websitesQuery = query(collection(db, "websites"));
     const gamesQuery = query(collection(db, "games"));
+    const photosQuery = query(collection(db, "photos"));
 
     let websites: any[] = [];
     let games: any[] = [];
+    let photos: any[] = [];
 
     const update = () => {
-      setProjects([...websites, ...games]);
+      setProjects([...websites, ...games, ...photos]);
       setLoading(false);
     };
 
@@ -76,9 +62,19 @@ export default function Work() {
       update();
     });
 
+    const unsubPhotos = onSnapshot(photosQuery, (snap) => {
+      photos = snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        category: "photography",
+      }));
+      update();
+    });
+
     return () => {
       unsubWebsites();
       unsubGames();
+      unsubPhotos();
     };
   }, []);
 
@@ -89,7 +85,9 @@ export default function Work() {
       : projects.filter((p) =>
           selectedCategory === "Websites"
             ? p.category === "web"
-            : p.category === "games"
+            : selectedCategory === "Games"
+            ? p.category === "games"
+            : p.category === "photography"
         );
 
   if (loading)
@@ -175,7 +173,7 @@ export default function Work() {
                   <div className="mt-4 p-1">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-semibold tracking-widest uppercase text-primary">
-                        {project.category === "web" ? "Website" : "Game"}
+                        {project.category === "web" ? "Website" : project.category === "games" ? "Game" : "Photography"}
                       </span>
 
                       <ArrowUpRight className="h-5 w-5 opacity-50 group-hover:opacity-100 text-primary transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />

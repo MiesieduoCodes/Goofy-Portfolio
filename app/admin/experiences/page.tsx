@@ -1,37 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { MotionDiv } from "@/components/motion"
-import { Navbar } from "@/components/layout/Navbar"
-import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import AdminLayout from "../components/AdminLayout"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit2, Trash2, X } from "lucide-react"
-import { initializeApp } from "firebase/app"
-import { getFirestore, collection, doc, setDoc, getDoc, deleteDoc, updateDoc, onSnapshot, query } from "firebase/firestore"
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04"
-}
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+import { Plus, Edit2, Trash2 } from "lucide-react"
+import { db } from "@/lib/firebase"
+import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query } from "firebase/firestore"
 
 export default function AdminExperiencesPage() {
   const [experiences, setExperiences] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     role: "",
     company: "",
@@ -42,6 +28,7 @@ export default function AdminExperiencesPage() {
     details: "",
     align: "left"
   })
+  const formRef = useRef<HTMLDivElement>(null)
 
   // Load experiences from Firebase
   useEffect(() => {
@@ -58,6 +45,8 @@ export default function AdminExperiencesPage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSuccess(null)
+    setError(null)
     
     try {
       const experienceData = {
@@ -70,12 +59,14 @@ export default function AdminExperiencesPage() {
 
       if (editingId) {
         await updateDoc(doc(db, "experiences", editingId), experienceData)
+        setSuccess("✅ Experience updated successfully!")
         console.log("✅ Experience updated:", formData.role)
       } else {
         await setDoc(doc(collection(db, "experiences")), {
           ...experienceData,
           createdAt: Date.now()
         })
+        setSuccess("✅ Experience added successfully!")
         console.log("✅ Experience added:", formData.role)
       }
 
@@ -91,25 +82,32 @@ export default function AdminExperiencesPage() {
         align: "left"
       })
       setEditingId(null)
-    } catch (error) {
-      console.error("❌ Error saving experience:", error)
+    } catch (err: any) {
+      console.error("❌ Error saving experience:", err)
+      setError(err?.message || "❌ Error saving experience. Please try again.")
     }
   }
 
   // Handle delete
   const handleDelete = async (id: string) => {
+    setSuccess(null)
+    setError(null)
     if (confirm("Are you sure you want to delete this experience?")) {
       try {
         await deleteDoc(doc(db, "experiences", id))
+        setSuccess("✅ Experience deleted successfully!")
         console.log("✅ Experience deleted")
-      } catch (error) {
-        console.error("❌ Error deleting experience:", error)
+      } catch (err: any) {
+        console.error("❌ Error deleting experience:", err)
+        setError(err?.message || "❌ Error deleting experience. Please try again.")
       }
     }
   }
 
   // Handle edit
   const handleEdit = (experience: any) => {
+    setSuccess(null)
+    setError(null)
     setFormData({
       role: experience.role || "",
       company: experience.company || "",
@@ -121,37 +119,22 @@ export default function AdminExperiencesPage() {
       align: experience.align || "left"
     })
     setEditingId(experience.id)
+    // Scroll to form
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-24">
-        <div className="container-custom py-8">
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">
-                  Experience <span className="text-gradient">Management</span>
-                </h1>
-                <p className="text-muted-foreground">Manage your professional work experience</p>
-              </div>
-              <Button asChild>
-                <a href="/admin">
-                  <X className="mr-2 h-4 w-4" />
-                  Back to Admin
-                </a>
-              </Button>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-8">
+    <AdminLayout title="Experience Management" description="Manage your professional work experience">
+      <div className="container-custom py-8">
+        <MotionDiv
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="grid lg:grid-cols-3 gap-8">
               {/* Form Section */}
-              <div className="lg:col-span-1">
-                <Card>
+              <div className="lg:col-span-1" ref={formRef}>
+                <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Plus className="w-5 h-5" />
@@ -163,6 +146,16 @@ export default function AdminExperiencesPage() {
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
+                      {success && (
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                          {success}
+                        </div>
+                      )}
+                      {error && (
+                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                          {error}
+                        </div>
+                      )}
                       <div>
                         <Label htmlFor="role">Role/Position</Label>
                         <Input
@@ -255,7 +248,7 @@ export default function AdminExperiencesPage() {
                           id="align"
                           value={formData.align}
                           onChange={(e) => setFormData(prev => ({ ...prev, align: e.target.value }))}
-                          className="w-full p-2 border rounded-md"
+                          className="w-full p-2 border rounded-md bg-background text-foreground border-input"
                         >
                           <option value="left">Left</option>
                           <option value="right">Right</option>
@@ -271,6 +264,8 @@ export default function AdminExperiencesPage() {
                             type="button"
                             variant="outline"
                             onClick={() => {
+                              setSuccess(null)
+                              setError(null)
                               setEditingId(null)
                               setFormData({
                                 role: "",
@@ -354,10 +349,8 @@ export default function AdminExperiencesPage() {
                 </Card>
               </div>
             </div>
-          </MotionDiv>
-        </div>
-      </main>
-      <Footer />
-    </div>
+        </MotionDiv>
+      </div>
+    </AdminLayout>
   )
 }

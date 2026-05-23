@@ -5,25 +5,9 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { BentoGrid } from "@/components/bento-grid";
 
-// Firebase
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useState, useEffect } from "react";
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA0OsK84UeHrgJ4ISxtUmj9o38msLKvcuc",
-  authDomain: "miesieduocodes.firebaseapp.com",
-  projectId: "miesieduocodes",
-  storageBucket: "miesieduocodes.firebasestorage.app",
-  messagingSenderId: "597948621417",
-  appId: "1:597948621417:web:f5f184a107081b867ab8f8",
-  measurementId: "G-03B9NEFH04",
-};
-
-// Init Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 export function FeaturedWork() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -32,16 +16,18 @@ export function FeaturedWork() {
   useEffect(() => {
     setLoading(true);
     
-    // We fetch from both websites and games where featured is true
+    // We fetch from websites, games, and photos where featured is true
     const websitesQuery = query(collection(db, "websites"), where("featured", "==", true));
     const gamesQuery = query(collection(db, "games"), where("featured", "==", true));
+    const photosQuery = query(collection(db, "photos"), where("featured", "==", true));
 
     let websites: any[] = [];
     let games: any[] = [];
+    let photos: any[] = [];
 
     const update = () => {
       // Sort by createdAt or just merge
-      const merged = [...websites, ...games].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const merged = [...websites, ...games, ...photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setProjects(merged.slice(0, 5)); // Limit to top 5 for the bento grid
       setLoading(false);
     };
@@ -56,9 +42,15 @@ export function FeaturedWork() {
       update();
     });
 
+    const unsubPhotos = onSnapshot(photosQuery, (snap) => {
+      photos = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      update();
+    });
+
     return () => {
       unsubWebsites();
       unsubGames();
+      unsubPhotos();
     };
   }, []);
   return (
