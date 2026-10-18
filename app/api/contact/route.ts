@@ -1,27 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Resend } from 'resend'
-
-// Escape user input before it goes into the email HTML
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-
-// Form validation schema
-const contactSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  subject: z.string().min(5, 'Subject must be at least 5 characters'),
-  message: z.string().min(10, 'Message must be at least 10 characters'),
-})
+import { contactSchema, emailSubject, escapeHtml } from '@/lib/contact'
 
 export async function POST(request: NextRequest) {
   try {
-    // Debug: Check if API key is loaded
     if (!process.env.RESEND_API_KEY) {
       console.error('RESEND_API_KEY is not set in environment variables')
       return NextResponse.json(
@@ -36,8 +19,13 @@ export async function POST(request: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     // Parse the request body
-    const body = await request.json()
-    
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ success: false, message: 'Invalid request body.' }, { status: 400 })
+    }
+
     // Validate the form data
     const validatedData = contactSchema.parse(body)
     
@@ -51,7 +39,7 @@ export async function POST(request: NextRequest) {
       from: 'Portfolio Contact <onboarding@resend.dev>', // Change this to your domain later
       to: ['miesieduoveria@gmail.com'],
       replyTo: validatedData.email,
-      subject: `New Contact: ${validatedData.subject.replace(/[\r\n]+/g, ' ')}`,
+      subject: emailSubject(validatedData.subject),
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">

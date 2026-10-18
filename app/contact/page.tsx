@@ -6,6 +6,7 @@ import { ArrowUpRight, Check, Copy, Loader2 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { SectionLabel } from "@/components/sections/BigCta";
 import { LOCATIONS, PlaceTime } from "@/components/world-clock";
+import { contactSchema, fieldErrors, type ContactField } from "@/lib/contact";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 const EMAIL = "miesieduoveria@gmail.com";
@@ -20,18 +21,8 @@ const socials = [
   { name: "X / Twitter", href: "https://x.com/MiesieduoVeria" },
 ];
 
-type Field = "name" | "email" | "subject" | "message";
+type Field = ContactField;
 type Status = "idle" | "sending" | "sent" | "error";
-
-// Mirrors the server-side rules in app/api/contact/route.ts
-function validate(values: Record<Field, string>) {
-  const errors: Partial<Record<Field, string>> = {};
-  if (values.name.trim().length < 2) errors.name = "Name must be at least 2 characters";
-  if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) errors.email = "Please enter a valid email address";
-  if (values.subject.trim().length < 5) errors.subject = "Subject must be at least 5 characters";
-  if (values.message.trim().length < 10) errors.message = "Message must be at least 10 characters";
-  return errors;
-}
 
 function Input({
   id,
@@ -112,9 +103,12 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const found = validate(values);
-    setErrors(found);
-    if (Object.keys(found).length) return;
+    const parsed = contactSchema.safeParse(values);
+    if (!parsed.success) {
+      setErrors(fieldErrors(parsed.error));
+      return;
+    }
+    setErrors({});
 
     setStatus("sending");
     setServerMessage("");
@@ -123,8 +117,8 @@ export default function Contact() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...values,
-          subject: topic ? `[${topic}] ${values.subject.trim()}` : values.subject.trim(),
+          ...parsed.data,
+          subject: topic ? `[${topic}] ${parsed.data.subject}` : parsed.data.subject,
         }),
       });
       const data = await res.json().catch(() => ({}));
