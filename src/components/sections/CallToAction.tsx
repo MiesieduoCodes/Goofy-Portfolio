@@ -29,7 +29,7 @@ export function CallToAction() {
           </p>
 
           {/* CTA Button */}
-          <Button variant="default" size="xl" asChild className="group">
+          <Button variant="default" size="xl" asChild className="group magnetic transition-transform duration-200 ease-out">
             <Link href="/contact">
               Let's Work Together
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -39,7 +39,7 @@ export function CallToAction() {
           {/* Social Links */}
           <div className="flex items-center justify-center gap-6 mt-10">
             <a
-              href="https://linkedin.com"
+              href="https://ng.linkedin.com/in/goofydidthis"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors link-underline"
@@ -47,7 +47,7 @@ export function CallToAction() {
               LinkedIn
             </a>
             <a
-              href="https://github.com"
+              href="https://github.com/MiesieduoCodes"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors link-underline"
@@ -55,7 +55,7 @@ export function CallToAction() {
               GitHub
             </a>
             <a
-              href="https://twitter.com"
+              href="https://x.com/MiesieduoVeria"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors link-underline"

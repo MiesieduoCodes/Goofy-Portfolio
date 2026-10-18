@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Linkedin, Instagram, X, Zap } from "lucide-react";
+import { Github, Linkedin, Instagram, X, Zap, ArrowUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { WorldClock, PlaceTime, LOCATIONS } from "@/components/world-clock";
 
 const socialLinks = [
   { name: "GitHub", href: "https://github.com/miesieduocodes", icon: Github },
@@ -99,14 +100,47 @@ export function Footer() {
 
         </div>
 
+        {/* World clock */}
+        <div className="mt-14">
+          <WorldClock />
+        </div>
+
         {/* Divider */}
         <div className="w-full h-px bg-white/5 mt-14" />
 
-        {/* Bottom Text */}
-        <div className="pt-6 text-center md:text-right text-xs text-white/30 tracking-wider">
-          Built with passion, precision & minimalism.
+        {/* Bottom bar */}
+        <div className="pt-6 flex flex-col-reverse items-center gap-4 md:flex-row md:justify-between text-xs text-white/30 tracking-wider">
+          <span className="flex items-center gap-2 uppercase tracking-[0.25em]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+            </span>
+            Currently in {LOCATIONS.current.label} · <PlaceTime timeZone={LOCATIONS.current.timeZone} />
+          </span>
+          <span>Built with passion, precision & minimalism.</span>
+          <a
+            href="#top"
+            className="group flex items-center gap-2 uppercase tracking-[0.25em] text-white/50 hover:text-white transition-colors"
+          >
+            Back to top
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-white">
+              <ArrowUp className="h-3.5 w-3.5" />
+            </span>
+          </a>
         </div>
+      </div>
 
+      {/* Giant wordmark */}
+      <div aria-hidden className="relative z-0 select-none overflow-hidden">
+        <motion.p
+          initial={{ y: "40%", opacity: 0 }}
+          whileInView={{ y: "18%", opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center font-black uppercase leading-[0.8] tracking-tighter text-[10.5vw] bg-gradient-to-b from-white/25 via-white/10 to-transparent bg-clip-text text-transparent"
+        >
+          MiesieduoVeria.
+        </motion.p>
       </div>
     </footer>
   );

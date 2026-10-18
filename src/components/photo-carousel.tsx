@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { canOptimizeImage } from "@/lib/utils"
 
 const images = [
   "/images/IMG_20240128_165727_416.jpg",
@@ -45,6 +46,8 @@ export default function PhotoCarousel() {
             src={images[index]}
             alt={`Veria ${index}`}
             fill
+            sizes="100vw"
+            unoptimized={!canOptimizeImage(images[index])}
             className="object-cover"
             priority
           />

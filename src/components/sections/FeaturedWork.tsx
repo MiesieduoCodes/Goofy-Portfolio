@@ -25,6 +25,11 @@ export function FeaturedWork() {
     let games: any[] = [];
     let photos: any[] = [];
 
+    const onError = (error: unknown) => {
+      console.error("Error fetching projects:", error);
+      setLoading(false);
+    };
+
     const update = () => {
       // Sort by createdAt or just merge
       const merged = [...websites, ...games, ...photos].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -35,17 +40,17 @@ export function FeaturedWork() {
     const unsubWebsites = onSnapshot(websitesQuery, (snap) => {
       websites = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       update();
-    });
+    }, onError);
 
     const unsubGames = onSnapshot(gamesQuery, (snap) => {
       games = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       update();
-    });
+    }, onError);
 
     const unsubPhotos = onSnapshot(photosQuery, (snap) => {
       photos = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       update();
-    });
+    }, onError);
 
     return () => {
       unsubWebsites();
@@ -60,8 +65,6 @@ export function FeaturedWork() {
         <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-primary/5 blur-[120px]" />
       </div>
 
-      {/* ───────── GRAIN LAYER ───────── */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-soft-light bg-[url('/grain.png')] bg-cover" />
 
       <div className="container-custom relative z-10">
         {/* Section Header */}

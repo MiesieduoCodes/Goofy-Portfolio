@@ -18,7 +18,7 @@ const services = [
     title: "Game Development",
     description:
       "Physics-driven interactions, custom engines, procedural systems, and dynamic gameplay.",
-    href: "/game-dev",
+    href: "/games",
   },
   {
     icon: Camera,
@@ -57,15 +57,13 @@ function useTilt() {
 
 export function WhatIDo() {
   return (
-    <section className="next-section py-28 bg-black relative overflow-hidden">
+    <section id="what-i-do" className="next-section py-28 bg-black relative overflow-hidden">
       {/* ───────── AMBIENT GLOW (Blending with Hero) ───────── */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-24 right-0 w-[500px] h-[400px] bg-purple-600/10 blur-[150px]" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 blur-[200px]" />
       </div>
 
-      {/* ───────── GRAIN LAYER (Consistency) ───────── */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-soft-light bg-[url('/grain.png')] bg-cover" />
 
       {/* floating particles - Barely visible */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.015] animate-[pulse_10s_ease-in-out_infinite] bg-[radial-gradient(circle_at_center,white_0%,transparent_40%)]"></div>

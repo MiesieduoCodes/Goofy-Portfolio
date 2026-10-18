@@ -1,5 +1,4 @@
 import { MotionDiv, MotionH1 } from "@/components/motion";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Home, ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <main className="pt-24">
         <section className="container-custom py-16">
           <MotionDiv

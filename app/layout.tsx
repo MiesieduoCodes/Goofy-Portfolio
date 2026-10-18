@@ -3,6 +3,10 @@ import type { Metadata } from 'next'
 import './globals.css'
 import CursorInit from '@/components/cursor-init'
 import { LayoutProvider } from '@/components/providers/LayoutProvider'
+import { SmoothScroll } from '@/components/effects/SmoothScroll'
+import { FilmGrain } from '@/components/effects/FilmGrain'
+import { ScrollProgress } from '@/components/effects/ScrollProgress'
+import { PageTransition } from '@/components/effects/PageTransition'
 
 export const metadata: Metadata = {
   title: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
@@ -53,9 +57,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -74,10 +75,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-background text-foreground antialiased">
+        <div id="top" />
         <LayoutProvider>
+          <SmoothScroll />
+          <ScrollProgress />
           <Navbar />
           {children}
           <CursorInit />
+          <FilmGrain />
+          <PageTransition />
         </LayoutProvider>
       </body>
     </html>

@@ -4,7 +4,7 @@ import { getRandomLayout } from "@/lib/bento-layout";
 import { useMemo, useEffect, useRef, useState } from "react";
 import ProjectTile from "./project-tile";
 import ProjectOverlay from "./project-overlay";
-import { gsap } from "gsap";
+import { gsap } from "@/lib/gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { random, randomChoice, easings } from "@/lib/randomness";
 

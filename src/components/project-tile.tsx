@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import {gsap} from "gsap"
+import { gsap } from "@/lib/gsap";
 
 interface ProjectTileProps {
   project: {
