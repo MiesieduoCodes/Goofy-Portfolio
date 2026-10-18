@@ -78,7 +78,7 @@ export default function AdminLayout(props: AdminLayoutProps) {
           {user ? (
             <>
               <p className="text-sm text-muted-foreground">
-                {user.email} doesn't have admin access.
+                {user.email} doesn&apos;t have admin access.
               </p>
               <Button variant="outline" className="w-full" onClick={() => signOut(auth)}>
                 <LogOut className="w-4 h-4 mr-2" />

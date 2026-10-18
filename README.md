@@ -10,7 +10,7 @@ A modern portfolio website built with Next.js, TypeScript, and Tailwind CSS, sho
 - **UI Components**: shadcn/ui with Radix UI primitives
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
-- **Fonts**: Inter & Space Grotesk (@fontsource)
+- **Fonts**: Satoshi (Fontshare)
 - **Build Tool**: Next.js with SWC
 - **Deployment**: Ready for Vercel, Netlify, or any Node.js hosting
 
@@ -153,7 +153,7 @@ NEXT_PUBLIC_ADMIN_EMAILS=miesieduoveria@gmail.com
 
 ### Customization
 - **Colors**: Modify CSS variables in `app/globals.css`
-- **Fonts**: Update font imports in `app/layout.tsx`
+- **Fonts**: Change the font import at the top of `app/globals.css`
 - **Content**: Edit page content in respective `app/*/page.tsx` files
 - **Components**: Modify components in `src/components/`
 

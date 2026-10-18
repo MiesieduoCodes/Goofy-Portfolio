@@ -85,7 +85,7 @@ export default function AdminArtifactsPage() {
                 </Badge>
               </div>
               <CardDescription>
-                The 'Digital Artifacts' section on your homepage displays up to 5 items marked as **Featured**. 
+                The &apos;Selected work&apos; section on your homepage displays up to 5 items marked as **Featured**. 
                 You can toggle items here to control what appears on the main page.
               </CardDescription>
             </CardHeader>

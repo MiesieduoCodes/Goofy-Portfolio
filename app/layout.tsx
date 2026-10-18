@@ -9,7 +9,11 @@ import { ScrollProgress } from '@/components/effects/ScrollProgress'
 import { PageTransition } from '@/components/effects/PageTransition'
 
 export const metadata: Metadata = {
-  title: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
+  title: {
+    default: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
+    // Inner pages set their own title, e.g. "About — Miesieduo Veria"
+    template: '%s — Miesieduo Veria',
+  },
   description: 'Multi-disciplinary creative professional based in Nigeria. Building scalable web apps, immersive games, and professional creative media. At the intersection of code, lens, and rhythm.',
   keywords: 'web developer, game developer, photographer, drummer, Nigeria, creative, portfolio, Unity, React, TypeScript',
   authors: [{ name: 'Miesieduo Veria' }],
