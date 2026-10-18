@@ -13,14 +13,20 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
+  // Old routes folded into newer pages
+  async redirects() {
+    return [
+      { source: '/game-dev', destination: '/games', permanent: true },
+      // The gallery now lives on /photography
+      { source: '/photography/gallery', destination: '/photography', permanent: true },
+    ]
   },
   images: {
-    unoptimized: true,
+    // Only these hosts go through the optimizer; others are served as-is (see canOptimizeImage)
+    remotePatterns: [
+      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+      { protocol: 'https', hostname: '*.firebasestorage.app' },
+    ],
   },
   experimental: {
     webpackBuildWorker: true,

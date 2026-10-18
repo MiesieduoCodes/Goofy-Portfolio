@@ -10,15 +10,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, ExternalLink, Upload, X } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { db, storage } from "@/lib/firebase"
+import { normalizeTags } from "@/components/projects"
+import { AdminThumb } from "../components/admin-ui"
+import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { uploadFiles } from "@/lib/upload"
 
 export default function AdminWebsitesPage() {
   const [websites, setWebsites] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -160,15 +163,14 @@ export default function AdminWebsitesPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setUploadProgress(0)
     setUploading(true)
     try {
-      const storageRef_instance = storageRef(storage, `websites/${Date.now()}-${file.name}`)
-      await uploadBytes(storageRef_instance, file)
-      const downloadURL = await getDownloadURL(storageRef_instance)
+      const [downloadURL] = await uploadFiles("websites", [file], setUploadProgress)
       setFormData(prev => ({ ...prev, image: downloadURL }))
-      console.log("✅ Image uploaded:", downloadURL)
     } catch (error) {
       console.error("❌ Error uploading image:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploading(false)
     }
@@ -179,18 +181,14 @@ export default function AdminWebsitesPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    setUploadProgress(0)
     setUploadingScreenshots(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const ref = storageRef(storage, `websites/screenshots/${Date.now()}-${file.name}`)
-        await uploadBytes(ref, file)
-        return getDownloadURL(ref)
-      })
-      const urls = await Promise.all(uploadPromises)
+      const urls = await uploadFiles("websites/screenshots", Array.from(files), setUploadProgress)
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
-      console.log("✅ Screenshots uploaded:", urls)
     } catch (error) {
       console.error("❌ Error uploading screenshots:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploadingScreenshots(false)
       // Reset file input
@@ -208,7 +206,7 @@ export default function AdminWebsitesPage() {
 
   return (
     <AdminLayout title="Website Management" description="Manage your web development portfolio projects">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -217,7 +215,7 @@ export default function AdminWebsitesPage() {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Form Section */}
               <div className="lg:col-span-1" ref={formRef}>
-                <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+                <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Plus className="w-5 h-5" />
@@ -230,12 +228,12 @@ export default function AdminWebsitesPage() {
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       {success && (
-                        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                        <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                           {success}
                         </div>
                       )}
                       {error && (
-                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                        <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                           {error}
                         </div>
                       )}
@@ -260,6 +258,19 @@ export default function AdminWebsitesPage() {
                           rows={3}
                           required
                         />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="category">Type</Label>
+                        <select
+                          id="category"
+                          value={formData.category}
+                          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                          className="w-full p-2 border rounded-md bg-background text-foreground border-input"
+                        >
+                          <option value="web">Website (shows on /web)</option>
+                          <option value="mobile">Mobile app (shows on /mobile)</option>
+                        </select>
                       </div>
 
                       <div>
@@ -294,9 +305,10 @@ export default function AdminWebsitesPage() {
                             onChange={handleImageUpload}
                             disabled={uploading}
                           />
+                          {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                           {formData.image && (
                             <div className="relative">
-                              <img 
+                              <AdminThumb 
                                 src={formData.image} 
                                 alt="Preview" 
                                 className="w-full h-32 object-cover rounded-md"
@@ -327,13 +339,13 @@ export default function AdminWebsitesPage() {
                           disabled={uploadingScreenshots}
                         />
                         {uploadingScreenshots && (
-                          <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                          <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots… {uploadProgress}%</p>
                         )}
                         {formData.images.length > 0 && (
                           <div className="grid grid-cols-2 gap-2 mt-3">
                             {formData.images.map((imgUrl, idx) => (
                               <div key={idx} className="relative group">
-                                <img
+                                <AdminThumb
                                   src={imgUrl}
                                   alt={`Screenshot ${idx + 1}`}
                                   className="w-full h-20 object-cover rounded-md border border-border"
@@ -366,7 +378,7 @@ export default function AdminWebsitesPage() {
 
                       <div className="flex gap-2">
                         <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
-                          {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add Website")}
+                          {(uploading || uploadingScreenshots) ? `Uploading… ${uploadProgress}%` : (editingId ? "Update" : "Add Website")}
                         </Button>
                         {editingId && (
                           <Button
@@ -399,7 +411,7 @@ export default function AdminWebsitesPage() {
 
               {/* Websites List */}
               <div className="lg:col-span-2">
-                <Card>
+                <Card className="rounded-sm border-white/10 bg-transparent">
                   <CardHeader>
                     <CardTitle>Published Websites ({websites.length})</CardTitle>
                     <CardDescription>Your web development portfolio projects</CardDescription>
@@ -421,7 +433,7 @@ export default function AdminWebsitesPage() {
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-2">{website.description}</p>
                                 <div className="flex flex-wrap gap-1 mb-2">
-                                  {(website.tags || []).map((tag: string) => (
+                                  {normalizeTags(website.tags).map((tag: string) => (
                                     <Badge key={tag} variant="secondary" className="text-xs">
                                       {tag}
                                     </Badge>
@@ -457,7 +469,7 @@ export default function AdminWebsitesPage() {
                               </div>
                             </div>
                             {website.image && (
-                              <img 
+                              <AdminThumb 
                                 src={website.image} 
                                 alt={website.title}
                                 className="w-full h-32 object-cover rounded-md"
@@ -466,7 +478,7 @@ export default function AdminWebsitesPage() {
                             {website.images && website.images.length > 0 && (
                               <div className="flex gap-2 mt-2 overflow-x-auto">
                                 {website.images.map((imgUrl: string, idx: number) => (
-                                  <img
+                                  <AdminThumb
                                     key={idx}
                                     src={imgUrl}
                                     alt={`${website.title} screenshot ${idx + 1}`}

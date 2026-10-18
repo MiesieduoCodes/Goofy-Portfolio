@@ -10,15 +10,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X, Camera } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { db, storage } from "@/lib/firebase"
+import { normalizeTags } from "@/components/projects"
+import { AdminThumb } from "../components/admin-ui"
+import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { uploadFiles } from "@/lib/upload"
 
 export default function AdminPhotosPage() {
   const [photos, setPhotos] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -157,15 +160,14 @@ export default function AdminPhotosPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setUploadProgress(0)
     setUploading(true)
     try {
-      const storageRef_instance = storageRef(storage, `photos/${Date.now()}-${file.name}`)
-      await uploadBytes(storageRef_instance, file)
-      const downloadURL = await getDownloadURL(storageRef_instance)
+      const [downloadURL] = await uploadFiles("photos", [file], setUploadProgress)
       setFormData(prev => ({ ...prev, image: downloadURL }))
-      console.log("✅ Image uploaded:", downloadURL)
     } catch (error) {
       console.error("❌ Error uploading image:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploading(false)
     }
@@ -176,18 +178,14 @@ export default function AdminPhotosPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    setUploadProgress(0)
     setUploadingScreenshots(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const ref = storageRef(storage, `photos/screenshots/${Date.now()}-${file.name}`)
-        await uploadBytes(ref, file)
-        return getDownloadURL(ref)
-      })
-      const urls = await Promise.all(uploadPromises)
+      const urls = await uploadFiles("photos/screenshots", Array.from(files), setUploadProgress)
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
-      console.log("✅ Screenshots uploaded:", urls)
     } catch (error) {
       console.error("❌ Error uploading screenshots:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploadingScreenshots(false)
       e.target.value = ""
@@ -203,19 +201,11 @@ export default function AdminPhotosPage() {
   }
 
   // Get category color
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "landscape": return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-      case "wildlife": return "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-      case "urban": return "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-      case "portrait": return "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-      default: return "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
-    }
-  }
+  const getCategoryColor = (_category: string) => "border border-white/20 bg-transparent text-white/70"
 
   return (
     <AdminLayout title="Photo Gallery" description="Manage your photography portfolio">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -224,7 +214,7 @@ export default function AdminPhotosPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Form Section */}
             <div className="lg:col-span-1" ref={formRef}>
-              <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+              <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
@@ -237,12 +227,12 @@ export default function AdminPhotosPage() {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {success && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                      <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                         {success}
                       </div>
                     )}
                     {error && (
-                      <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                      <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                         {error}
                       </div>
                     )}
@@ -305,9 +295,10 @@ export default function AdminPhotosPage() {
                           onChange={handleImageUpload}
                           disabled={uploading}
                         />
+                        {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                         {formData.image && (
                           <div className="relative">
-                            <img 
+                            <AdminThumb 
                               src={formData.image} 
                               alt="Preview" 
                               className="w-full h-48 object-cover rounded-md"
@@ -338,13 +329,13 @@ export default function AdminPhotosPage() {
                         disabled={uploadingScreenshots}
                       />
                       {uploadingScreenshots && (
-                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots… {uploadProgress}%</p>
                       )}
                       {formData.images && formData.images.length > 0 && (
                         <div className="grid grid-cols-2 gap-2 mt-3">
                           {formData.images.map((imgUrl, idx) => (
                             <div key={idx} className="relative group">
-                              <img
+                              <AdminThumb
                                 src={imgUrl}
                                 alt={`Additional View ${idx + 1}`}
                                 className="w-full h-20 object-cover rounded-md border border-border"
@@ -377,7 +368,7 @@ export default function AdminPhotosPage() {
 
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
-                        {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add Photo")}
+                        {(uploading || uploadingScreenshots) ? `Uploading… ${uploadProgress}%` : (editingId ? "Update" : "Add Photo")}
                       </Button>
                       {editingId && (
                         <Button
@@ -409,7 +400,7 @@ export default function AdminPhotosPage() {
 
             {/* Photos List */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="rounded-sm border-white/10 bg-transparent">
                 <CardHeader>
                   <CardTitle>Photo Gallery ({photos.length})</CardTitle>
                   <CardDescription>Your photography portfolio</CardDescription>
@@ -435,7 +426,7 @@ export default function AdminPhotosPage() {
                               </div>
                               <p className="text-sm text-muted-foreground mb-2">{photo.description}</p>
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {(photo.tags || []).map((tag: string) => (
+                                {normalizeTags(photo.tags).map((tag: string) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">
                                     {tag}
                                   </Badge>
@@ -460,7 +451,7 @@ export default function AdminPhotosPage() {
                             </div>
                           </div>
                           {photo.image && (
-                            <img 
+                            <AdminThumb 
                               src={photo.image} 
                               alt={photo.title}
                               className="w-full h-48 object-cover rounded-md"
@@ -469,7 +460,7 @@ export default function AdminPhotosPage() {
                           {photo.images && photo.images.length > 0 && (
                             <div className="flex gap-2 mt-2 overflow-x-auto">
                               {photo.images.map((imgUrl: string, idx: number) => (
-                                <img
+                                <AdminThumb
                                   key={idx}
                                   src={imgUrl}
                                   alt={`${photo.title} screenshot ${idx + 1}`}

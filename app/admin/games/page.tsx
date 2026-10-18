@@ -10,15 +10,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { db, storage } from "@/lib/firebase"
+import { normalizeTags } from "@/components/projects"
+import { AdminThumb } from "../components/admin-ui"
+import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { uploadFiles } from "@/lib/upload"
 
 export default function AdminGamesPage() {
   const [games, setGames] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -127,14 +130,14 @@ export default function AdminGamesPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setUploadProgress(0)
     setUploading(true)
     try {
-      const storageRef_instance = storageRef(storage, `games/${Date.now()}-${file.name}`)
-      await uploadBytes(storageRef_instance, file)
-      const url = await getDownloadURL(storageRef_instance)
+      const [url] = await uploadFiles("games", [file], setUploadProgress)
       setFormData(prev => ({ ...prev, image: url }))
     } catch (error) {
       console.error("Upload error:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploading(false)
     }
@@ -145,17 +148,14 @@ export default function AdminGamesPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    setUploadProgress(0)
     setUploadingScreenshots(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const ref = storageRef(storage, `games/screenshots/${Date.now()}-${file.name}`)
-        await uploadBytes(ref, file)
-        return getDownloadURL(ref)
-      })
-      const urls = await Promise.all(uploadPromises)
+      const urls = await uploadFiles("games/screenshots", Array.from(files), setUploadProgress)
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
     } catch (error) {
       console.error("Upload error:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploadingScreenshots(false)
       e.target.value = ""
@@ -172,12 +172,12 @@ export default function AdminGamesPage() {
 
   return (
     <AdminLayout title="Game Management" description="Manage your game development portfolio projects">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Form */}
             <div className="lg:col-span-1" ref={formRef}>
-              <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+              <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
@@ -187,12 +187,12 @@ export default function AdminGamesPage() {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {success && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                      <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                         {success}
                       </div>
                     )}
                     {error && (
-                      <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                      <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                         {error}
                       </div>
                     )}
@@ -215,9 +215,10 @@ export default function AdminGamesPage() {
                     <div>
                       <Label>Screenshot</Label>
                       <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
+                      {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                       {formData.image && (
                         <div className="relative mt-2">
-                          <img src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-md" />
+                          <AdminThumb src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-md" />
                           <Button type="button" variant="destructive" size="sm" className="absolute top-2 right-2" onClick={() => setFormData(prev => ({ ...prev, image: "" }))}>
                             <X className="w-4 h-4" />
                           </Button>
@@ -229,13 +230,13 @@ export default function AdminGamesPage() {
                       <p className="text-xs text-muted-foreground mb-2">Upload multiple views/screenshots</p>
                       <Input type="file" accept="image/*" multiple onChange={handleScreenshotUpload} disabled={uploadingScreenshots} />
                       {uploadingScreenshots && (
-                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots… {uploadProgress}%</p>
                       )}
                       {formData.images.length > 0 && (
                         <div className="grid grid-cols-2 gap-2 mt-3">
                           {formData.images.map((imgUrl, idx) => (
                             <div key={idx} className="relative group">
-                              <img
+                              <AdminThumb
                                 src={imgUrl}
                                 alt={`Screenshot ${idx + 1}`}
                                 className="w-full h-20 object-cover rounded-md border border-border"
@@ -260,7 +261,7 @@ export default function AdminGamesPage() {
                     </div>
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
-                        {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add")}
+                        {(uploading || uploadingScreenshots) ? `Uploading… ${uploadProgress}%` : (editingId ? "Update" : "Add")}
                       </Button>
                       {editingId && (
                         <Button type="button" variant="outline" onClick={() => { setSuccess(null); setError(null); setEditingId(null); setFormData({ title: "", description: "", image: "", images: [], link: "", tags: "", category: "games", featured: false }); }}>
@@ -275,7 +276,7 @@ export default function AdminGamesPage() {
 
             {/* List */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="rounded-sm border-white/10 bg-transparent">
                 <CardHeader>
                   <CardTitle>Games ({games.length})</CardTitle>
                 </CardHeader>
@@ -296,7 +297,7 @@ export default function AdminGamesPage() {
                               </div>
                               <p className="text-sm text-muted-foreground mb-2">{game.description}</p>
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {(game.tags || []).map((tag: string) => (
+                                {normalizeTags(game.tags).map((tag: string) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                                 ))}
                               </div>
@@ -311,12 +312,12 @@ export default function AdminGamesPage() {
                             </div>
                           </div>
                           {game.image && (
-                            <img src={game.image} alt={game.title} className="w-full h-32 object-cover rounded-md" />
+                            <AdminThumb src={game.image} alt={game.title} className="w-full h-32 object-cover rounded-md" />
                           )}
                           {game.images && game.images.length > 0 && (
                             <div className="flex gap-2 mt-2 overflow-x-auto">
                               {game.images.map((imgUrl: string, idx: number) => (
-                                <img
+                                <AdminThumb
                                   key={idx}
                                   src={imgUrl}
                                   alt={`${game.title} screenshot ${idx + 1}`}

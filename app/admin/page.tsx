@@ -1,243 +1,188 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Globe, Gamepad2, Briefcase, Wrench, Camera, ArrowRight, Star, LayoutDashboard } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { ArrowUpRight, Briefcase, Camera, Gamepad2, Globe, Plus, Star, Wrench } from "lucide-react"
 import { db } from "@/lib/firebase"
 import { collection, onSnapshot, query } from "firebase/firestore"
 import AdminLayout from "./components/AdminLayout"
+import { AdminThumb } from "./components/admin-ui"
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const
+const MAX_FEATURED = 5
+
+type Key = "websites" | "games" | "photos" | "experiences" | "tools"
+
+const SECTIONS: { key: Key; title: string; href: string; icon: React.ComponentType<{ className?: string }>; publicHref: string }[] = [
+  { key: "websites", title: "Websites", href: "/admin/websites", icon: Globe, publicHref: "/web" },
+  { key: "games", title: "Games", href: "/admin/games", icon: Gamepad2, publicHref: "/games" },
+  { key: "photos", title: "Photos", href: "/admin/photos", icon: Camera, publicHref: "/photography" },
+  { key: "experiences", title: "Experience", href: "/admin/experiences", icon: Briefcase, publicHref: "/about" },
+  { key: "tools", title: "Tools & Skills", href: "/admin/tools", icon: Wrench, publicHref: "/web" },
+]
+
+interface Item {
+  id: string
+  key: Key
+  title?: string
+  role?: string
+  name?: string
+  image?: string
+  featured?: boolean
+  createdAt?: number
+}
 
 export default function AdminDashboard() {
-  const [counts, setCounts] = useState({
-    websites: 0,
-    games: 0,
-    experiences: 0,
-    tools: 0,
-    photos: 0
-  })
+  const [items, setItems] = useState<Record<Key, Item[]>>({ websites: [], games: [], photos: [], experiences: [], tools: [] })
 
   useEffect(() => {
-    const unsubscribers = Object.keys(counts).map((key) => {
-      return onSnapshot(query(collection(db, key)), (snapshot) => {
-        setCounts(prev => ({ ...prev, [key]: snapshot.size }))
-      })
-    })
-    return () => unsubscribers.forEach(unsub => unsub())
+    const unsubs = SECTIONS.map(({ key }) =>
+      onSnapshot(query(collection(db, key)), (snapshot) =>
+        setItems((prev) => ({ ...prev, [key]: snapshot.docs.map((doc) => ({ id: doc.id, key, ...(doc.data() as object) })) }))
+      )
+    )
+    return () => unsubs.forEach((u) => u())
   }, [])
 
-  const totalItems = Object.values(counts).reduce((sum, count) => sum + count, 0)
+  const featured = useMemo(() => [...items.websites, ...items.games, ...items.photos].filter((i) => i.featured).length, [items])
+  const recent = useMemo(
+    () =>
+      [...items.websites, ...items.games, ...items.photos]
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .slice(0, 6),
+    [items]
+  )
+  const editHref = (item: Item) => `${SECTIONS.find((s) => s.key === item.key)?.href}?edit=${item.id}`
 
   return (
-    <AdminLayout title="Admin Dashboard" description="Overview of your portfolio content">
-      <div className="container-custom py-8 space-y-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border border-border bg-card">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-foreground">{totalItems}</div>
-              <p className="text-sm text-muted-foreground">Total Items</p>
-            </CardContent>
-          </Card>
-          <Card className="border border-border bg-card">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-blue-400">{counts.websites + counts.games}</div>
-              <p className="text-sm text-muted-foreground">Projects</p>
-            </CardContent>
-          </Card>
-          <Card className="border border-border bg-card">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-purple-400">{counts.experiences}</div>
-              <p className="text-sm text-muted-foreground">Experiences</p>
-            </CardContent>
-          </Card>
-          <Card className="border border-border bg-card">
-            <CardContent className="p-6">
-              <div className="text-3xl font-bold text-orange-400">{counts.tools}</div>
-              <p className="text-sm text-muted-foreground">Skills</p>
-            </CardContent>
-          </Card>
+    <AdminLayout title="Dashboard" description="Overview of your portfolio content">
+      <div className="space-y-16 px-6 py-10 md:px-10 md:py-14">
+        {/* Counts */}
+        <section className="grid grid-cols-2 border-t border-white/10 md:grid-cols-5">
+          {SECTIONS.map((section, i) => (
+            <motion.div
+              key={section.key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE_OUT, delay: i * 0.05 }}
+            >
+              <Link
+                href={section.href}
+                className={`group block border-b border-white/10 py-8 transition-colors hover:bg-white/[0.03] md:border-b-0 ${i % 2 === 1 ? "border-l pl-5" : ""} ${i > 0 ? "md:border-l md:pl-6" : ""}`}
+              >
+                <p className="text-5xl md:text-6xl font-black leading-none tracking-tighter tabular-nums">{items[section.key].length}</p>
+                <p className="mt-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/40 group-hover:text-white">
+                  {section.title}
+                  <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                </p>
+              </Link>
+            </motion.div>
+          ))}
+        </section>
+
+        <div className="grid gap-16 lg:grid-cols-12">
+          {/* Featured meter + recent */}
+          <section className="lg:col-span-7 space-y-12">
+            <div>
+              <div className="mb-4 flex items-end justify-between">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">Featured on the home page</p>
+                <Link href="/admin/artifacts" className="flex items-center gap-1 text-xs text-white/60 hover:text-white">
+                  Manage <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: MAX_FEATURED }).map((_, i) => (
+                  <span key={i} className={`h-2 flex-1 rounded-full ${i < featured ? "bg-white" : "bg-white/10"}`} />
+                ))}
+                <span className="ml-3 font-mono text-sm tabular-nums">
+                  {Math.min(featured, MAX_FEATURED)}/{MAX_FEATURED}
+                </span>
+              </div>
+              {featured > MAX_FEATURED && (
+                <p className="mt-2 text-xs text-white/40">
+                  {featured} items are featured; the home page shows the {MAX_FEATURED} newest.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-4 text-[10px] uppercase tracking-[0.3em] text-white/40">Recently added</p>
+              {recent.length === 0 ? (
+                <p className="border-y border-white/10 py-10 text-center text-sm text-white/40">Nothing added yet.</p>
+              ) : (
+                <ul className="divide-y divide-white/10 border-y border-white/10">
+                  {recent.map((item) => (
+                    <li key={`${item.key}-${item.id}`}>
+                      <Link href={editHref(item)} className="group flex items-center gap-4 py-3 transition-colors hover:bg-white/[0.03]">
+                        <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-sm bg-white/[0.05]">
+                          {item.image && <AdminThumb src={item.image} alt="" width={128} height={96} className="h-full w-full" />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-semibold">{item.title || "Untitled"}</span>
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                            {SECTIONS.find((s) => s.key === item.key)?.title}
+                            {item.featured ? " · Featured" : ""}
+                          </span>
+                        </span>
+                        <ArrowUpRight className="h-4 w-4 text-white/30 transition-all group-hover:rotate-45 group-hover:text-white" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          {/* Quick actions */}
+          <section className="lg:col-span-5">
+            <p className="mb-4 text-[10px] uppercase tracking-[0.3em] text-white/40">Quick actions</p>
+            <ul className="divide-y divide-white/10 border-y border-white/10">
+              {SECTIONS.map((section) => {
+                const Icon = section.icon
+                return (
+                  <li key={section.key} className="flex items-center gap-3 py-3">
+                    <Icon className="h-4 w-4 text-white/50" />
+                    <Link href={section.href} className="flex-1 font-semibold hover:underline underline-offset-4">
+                      {section.title}
+                    </Link>
+                    <Link
+                      href={section.href}
+                      className="flex items-center gap-1 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/70 transition-colors hover:border-white hover:text-white"
+                    >
+                      <Plus className="h-3 w-3" /> Add
+                    </Link>
+                    <a
+                      href={section.publicHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`View ${section.title} on the site`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 text-white/60 transition-colors hover:border-white hover:text-white"
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </a>
+                  </li>
+                )
+              })}
+              <li className="flex items-center gap-3 py-3">
+                <Star className="h-4 w-4 text-white/50" />
+                <Link href="/admin/artifacts" className="flex-1 font-semibold hover:underline underline-offset-4">
+                  Featured work
+                </Link>
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View the home page"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 text-white/60 transition-colors hover:border-white hover:text-white"
+                >
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              </li>
+            </ul>
+          </section>
         </div>
-
-        {/* Quick Actions */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Quick Actions</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="hover:shadow-lg transition-all border border-yellow-500/20 bg-yellow-500/[0.02] hover:bg-yellow-500/[0.04]">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-lg bg-yellow-500/10 text-yellow-500">
-                    <Star className="w-6 h-6" />
-                  </div>
-                  <Badge variant="outline" className="text-yellow-500 border-yellow-500/30">
-                    Homepage
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground">Digital Artifacts</CardTitle>
-                <CardDescription className="text-muted-foreground">Manage featured projects on your home page</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
-                  <a href="/admin/artifacts" className="flex items-center justify-center gap-2">
-                    Edit Homepage Showcase
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-all border border-blue-500/20 bg-blue-500/[0.02] hover:bg-blue-500/[0.04]">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400">
-                    <Globe className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    {counts.websites} Items
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground">Websites</CardTitle>
-                <CardDescription className="text-muted-foreground">Manage web development projects</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                  <a href="/admin/websites" className="flex items-center justify-center gap-2">
-                    Manage Websites
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-all border border-zinc-500/20 bg-zinc-500/[0.02] hover:bg-zinc-500/[0.04]">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-lg bg-zinc-800 text-white">
-                    <Gamepad2 className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-zinc-500/10 text-zinc-300 border border-zinc-500/20">
-                    {counts.games} Items
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground">Games</CardTitle>
-                <CardDescription className="text-muted-foreground">Manage game development projects</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild className="w-full bg-zinc-700 hover:bg-zinc-800 text-white">
-                  <a href="/admin/games" className="flex items-center justify-center gap-2">
-                    Manage Games
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-all border border-purple-500/20 bg-purple-500/[0.02] hover:bg-purple-500/[0.04]">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-lg bg-purple-500/10 text-purple-400">
-                    <Briefcase className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                    {counts.experiences} Items
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground">Experiences</CardTitle>
-                <CardDescription className="text-muted-foreground">Manage work experience and timeline</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                  <a href="/admin/experiences" className="flex items-center justify-center gap-2">
-                    Manage Experiences
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-all border border-orange-500/20 bg-orange-500/[0.02] hover:bg-orange-500/[0.04]">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-lg bg-orange-500/10 text-orange-400">
-                    <Wrench className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                    {counts.tools} Items
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground">Tools & Skills</CardTitle>
-                <CardDescription className="text-muted-foreground">Manage technical tools and skill levels</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-                  <a href="/admin/tools" className="flex items-center justify-center gap-2">
-                    Manage Tools
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-all border border-pink-500/20 bg-pink-500/[0.02] hover:bg-pink-500/[0.04]">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-3 rounded-lg bg-pink-500/10 text-pink-400">
-                    <Camera className="w-6 h-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-pink-500/10 text-pink-400 border border-pink-500/20">
-                    {counts.photos} Items
-                  </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground">Photo Gallery</CardTitle>
-                <CardDescription className="text-muted-foreground">Manage photography portfolio</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild className="w-full bg-pink-600 hover:bg-pink-700 text-white">
-                  <a href="/admin/photos" className="flex items-center justify-center gap-2">
-                    Manage Photos
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Quick Links */}
-        <Card className="border border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">Quick Preview</CardTitle>
-            <CardDescription className="text-muted-foreground">View your portfolio pages</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
-              <a href="/work" target="_blank">
-                <Globe className="w-4 h-4 mr-2 text-blue-400" />
-                Portfolio Overview
-              </a>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
-              <a href="/games" target="_blank">
-                <Gamepad2 className="w-4 h-4 mr-2 text-zinc-400" />
-                Games Portfolio
-              </a>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
-              <a href="/web" target="_blank">
-                <Globe className="w-4 h-4 mr-2 text-emerald-400" />
-                Web Projects
-              </a>
-            </Button>
-            <Button asChild variant="outline" className="w-full justify-start border-border hover:bg-accent text-foreground">
-              <a href="/about" target="_blank">
-                <Briefcase className="w-4 h-4 mr-2 text-purple-400" />
-                About Page
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </AdminLayout>
   )
-}
+}

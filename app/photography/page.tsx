@@ -1,490 +1,322 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { MotionDiv } from "@/components/motion";
-import { Navbar } from "@/components/layout/Navbar";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Calendar, MapPin, X } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
-import { Camera, Eye, Download, Calendar, MapPin, X, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { db } from "@/lib/firebase"
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore"
+import { BigCta, SectionLabel } from "@/components/sections/BigCta";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 
-const photographyCategories = [
-  {
-    title: "Nature & Wildlife",
-    description: "Capturing the raw beauty of the natural world and its inhabitants.",
-    image: "/placeholder.svg",
-  },
-  {
-    title: "Landscape",
-    description: "Ethereal landscapes that tell stories of time and place.",
-    image: "/placeholder.svg",
-  },
-  {
-    title: "Architecture",
-    description: "Modern and traditional structures through a creative lens.",
-    image: "/placeholder.svg",
-  },
-  {
-    title: "Commercial",
-    description: "Professional photography for brands and businesses.",
-    image: "/placeholder.svg",
-  },
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+interface Photo {
+  id: string;
+  title?: string;
+  image?: string;
+  category?: string;
+  location?: string;
+  description?: string;
+  date?: string;
+}
+
+const equipment = [
+  { title: "Cameras", items: ["Sony Alpha A7R IV", "Sony Alpha A7 III", "Sony RX100 VII"] },
+  { title: "Lenses", items: ["Sony 24-70mm f/2.8 GM", "Sony 70-200mm f/2.8 GM", "Sony 85mm f/1.4 GM"] },
+  { title: "Accessories", items: ["DJI Ronin Gimbal", "Profoto Lighting", "Manfrotto Tripods"] },
 ];
 
+const titleCase = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Full-screen viewer; arrow keys / buttons step through the current selection
+function Lightbox({
+  photos,
+  index,
+  onIndex,
+  onClose,
+}: {
+  photos: Photo[];
+  index: number;
+  onIndex: (i: number) => void;
+  onClose: () => void;
+}) {
+  const photo = photos[index];
+  const go = useCallback((dir: number) => onIndex((index + dir + photos.length) % photos.length), [index, onIndex, photos.length]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add("menu-open");
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") go(1);
+      if (e.key === "ArrowLeft") go(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      html.classList.remove("menu-open");
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [go, onClose]);
+
+  return (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={photo.title || "Photograph"}
+      data-lenis-prevent
+      className="fixed inset-0 z-[1050] flex flex-col bg-black/95 backdrop-blur-xl"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-6 py-5 md:px-10">
+        <span className="font-mono text-xs text-white/50">
+          {String(index + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          autoFocus
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-transparent p-0 text-white transition-colors hover:bg-white hover:text-black"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Image */}
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 md:px-24">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={photo.id}
+            src={photo.image}
+            alt={photo.title || "Photograph"}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.4, ease: EASE_OUT }}
+            className="max-h-full max-w-full object-contain"
+          />
+        </AnimatePresence>
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous photo"
+              onClick={() => go(-1)}
+              className="absolute left-2 md:left-8 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next photo"
+              onClick={() => go(1)}
+              className="absolute right-2 md:right-8 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-black"
+            >
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Caption */}
+      <div className="flex flex-col gap-3 px-6 py-6 md:flex-row md:items-end md:justify-between md:px-10">
+        <div>
+          <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">{photo.title || "Untitled"}</h2>
+          {photo.description && <p className="mt-2 max-w-2xl text-sm text-white/50">{photo.description}</p>}
+        </div>
+        <div className="flex flex-wrap items-center gap-4 text-[10px] uppercase tracking-[0.25em] text-white/50">
+          {photo.category && <span className="rounded-full border border-white/20 px-3 py-1">{titleCase(photo.category)}</span>}
+          {photo.location && (
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" /> {photo.location}
+            </span>
+          )}
+          {photo.date && (
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-3 w-3" /> {photo.date}
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Photography() {
-  const [photos, setPhotos] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedPhoto, setSelectedPhoto] = useState<any>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [open, setOpen] = useState<number | null>(null);
+  const close = useCallback(() => setOpen(null), []);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
       query(collection(db, "photos"), orderBy("createdAt", "desc")),
       (snapshot) => {
-        const photosData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        setPhotos(photosData)
-        setLoading(false)
+        setPhotos(snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Omit<Photo, "id">) })).filter((p) => p.image));
+        setLoading(false);
       },
       (error) => {
-        console.error("Error fetching photos:", error)
-        setLoading(false)
+        console.error("Error fetching photos:", error);
+        setLoading(false);
       }
-    )
+    );
+    return () => unsubscribe();
+  }, []);
 
-    return () => unsubscribe()
-  }, [])
+  // Filters come from the categories actually used, so they always match
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    photos.forEach((p) => {
+      const c = (p.category || "other").toLowerCase();
+      counts.set(c, (counts.get(c) || 0) + 1);
+    });
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  }, [photos]);
 
-  // Get featured photos (first 3) - filtered by category if selected
-  const featuredPhotos = selectedCategory 
-    ? photos.filter(photo => {
-        const photoCategory = (photo.category || "").toLowerCase()
-        const targetCategory = selectedCategory.toLowerCase()
-        
-        // Same matching logic as getCategoryCount
-        if (photoCategory === targetCategory) return true
-        if (targetCategory.includes("nature") && photoCategory.includes("nature")) return true
-        if (targetCategory.includes("nature") && photoCategory.includes("wildlife")) return true
-        if (targetCategory.includes("landscape") && photoCategory.includes("landscape")) return true
-        if (targetCategory.includes("architecture") && photoCategory.includes("architecture")) return true
-        if (targetCategory.includes("commercial") && photoCategory.includes("commercial")) return true
-        if (targetCategory.includes("commercial") && photoCategory.includes("urban")) return true
-        
-        return false
-      }).slice(0, 3)
-    : photos.slice(0, 3)
-
-  // Count photos by category (case-insensitive and partial matching)
-  const getCategoryCount = (category: string) => {
-    return photos.filter(photo => {
-      const photoCategory = (photo.category || "").toLowerCase()
-      const targetCategory = category.toLowerCase()
-      
-      // Exact match
-      if (photoCategory === targetCategory) return true
-      
-      // Partial matching for flexibility
-      if (targetCategory.includes("nature") && photoCategory.includes("nature")) return true
-      if (targetCategory.includes("nature") && photoCategory.includes("wildlife")) return true
-      if (targetCategory.includes("landscape") && photoCategory.includes("landscape")) return true
-      if (targetCategory.includes("architecture") && photoCategory.includes("architecture")) return true
-      if (targetCategory.includes("commercial") && photoCategory.includes("commercial")) return true
-      if (targetCategory.includes("commercial") && photoCategory.includes("urban")) return true
-      
-      return false
-    }).length
-  }
-
-  // Update categories with actual counts
-  const categoriesWithCounts = photographyCategories.map(category => ({
-    ...category,
-    count: getCategoryCount(category.title)
-  }))
-
-  // Debug: Log the detected categories and counts
-  console.log("Detected photos:", photos.map(p => ({ title: p.title, category: p.category })))
-  console.log("Category counts:", categoriesWithCounts.map(c => ({ title: c.title, count: c.count })))
+  const visible = filter === "all" ? photos : photos.filter((p) => (p.category || "other").toLowerCase() === filter);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="pt-24">
-        {/* Hero Section */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-gradient">Photography</span> Portfolio
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Through my lens, I capture the essence of moments, places, and stories. 
-              Specializing in nature, wildlife, landscape, and architectural photography 
-              with a focus on the unique beauty of Nigeria and beyond.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Button variant="hero" size="lg">
-                <Download className="w-4 h-4 mr-2" />
-                Download Portfolio
-              </Button>
-              <Button variant="heroOutline" size="lg" asChild>
-                <Link href="/contact">License Inquiries</Link>
-              </Button>
-            </div>
-          </MotionDiv>
-        </section>
-
-        {/* Featured Photos */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="mb-12"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  {selectedCategory ? (
-                    <>
-                      <span className="text-gradient">{selectedCategory}</span> Photos
-                    </>
-                  ) : (
-                    <>
-                      Featured <span className="text-gradient">Work</span>
-                    </>
-                  )}
-                </h2>
-                <p className="text-muted-foreground">
-                  {selectedCategory 
-                    ? `Showing photos from ${selectedCategory} category`
-                    : "A selection of my most recent and notable photography projects."
-                  }
-                </p>
-              </div>
-              {selectedCategory && (
-                <Button variant="outline" onClick={() => setSelectedCategory(null)}>
-                  <X className="w-4 h-4 mr-2" />
-                  Clear Filter
-                </Button>
-              )}
-            </div>
-          </MotionDiv>
-
-          {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="glass rounded-xl overflow-hidden animate-pulse">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5"></div>
-                  <div className="p-6">
-                    <div className="h-4 bg-gray-200 rounded mb-3"></div>
-                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                    <div className="flex gap-4">
-                      <div className="h-4 bg-gray-200 rounded flex-1"></div>
-                      <div className="h-4 bg-gray-200 rounded flex-1"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : featuredPhotos.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredPhotos.map((photo, index) => (
-                <MotionDiv
-                  key={photo.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="group cursor-pointer"
+    <div className="min-h-screen bg-black text-white">
+      <main className="px-6 md:px-10 pt-36 md:pt-44">
+        {/* ── Header ── */}
+        <section className="pb-16 md:pb-24">
+          <SectionLabel index="01">Photography</SectionLabel>
+          <h1 className="text-[16vw] md:text-[11vw] font-black uppercase leading-[0.82] tracking-tighter">
+            {["Through", "The Lens"].map((line, i) => (
+              <span key={line} className="block overflow-hidden">
+                <motion.span
+                  className={`inline-block font-black ${i === 1 ? "text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.5)]" : ""}`}
+                  initial={{ y: "100%" }}
+                  animate={{ y: "0%" }}
+                  transition={{ duration: 1, ease: EASE_OUT, delay: 0.2 + i * 0.12 }}
                 >
-                  <div className="glass rounded-xl overflow-hidden card-hover">
-                    {/* Photo */}
-                    <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden cursor-pointer" onClick={() => setSelectedPhoto(photo)}>
-                      {photo.image ? (
-                        <img 
-                          src={photo.image} 
-                          alt={photo.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Camera className="w-12 h-12 text-primary/30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                        <Eye className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300" />
-                      </div>
-                    </div>
-
-                    {/* Photo Info */}
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary">
-                          {photo.category || "Photography"}
-                        </span>
-                        <Eye className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-                      
-                      <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
-                        {photo.title}
-                      </h3>
-                      
-                      <p className="text-muted-foreground text-sm mb-4">
-                        {photo.description}
-                      </p>
-                      
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {photo.location && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {photo.location}
-                          </div>
-                        )}
-                        {photo.date && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {photo.date}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </MotionDiv>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Camera className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No photos yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Start adding photos to your portfolio to see them here.
-              </p>
-              <Button asChild>
-                <Link href="/admin/photos">Add Your First Photo</Link>
-              </Button>
-            </div>
-          )}
+                  {line}
+                </motion.span>
+              </span>
+            ))}
+          </h1>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: EASE_OUT, delay: 0.6 }}
+            className="mt-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+          >
+            <p className="max-w-xl text-lg md:text-xl leading-relaxed text-white/50">
+              Capturing the essence of moments, places and stories — nature, wildlife, landscape and architecture, with a
+              focus on the unique beauty of Nigeria and beyond.
+            </p>
+            <span className="font-mono text-xs uppercase tracking-[0.3em] text-white/40">
+              {loading ? "—" : `${String(photos.length).padStart(2, "0")} frames`}
+            </span>
+          </motion.div>
         </section>
 
-        {/* Categories Grid */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="mb-12"
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Photography <span className="text-gradient">Categories</span>
-            </h2>
-            <p className="text-muted-foreground">
-              Explore different genres and styles of photography I specialize in.
-            </p>
-          </MotionDiv>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {categoriesWithCounts
-              .filter(category => category.count > 0) // Only show categories with photos
-              .sort((a, b) => b.count - a.count) // Sort by count (highest first)
-              .map((category, index) => (
-              <MotionDiv
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group cursor-pointer"
-                onClick={() => setSelectedCategory(category.title)}
+        {/* ── Filters ── */}
+        {categories.length > 1 && (
+          <div className="sticky top-24 z-30 -mx-6 mb-8 flex flex-wrap gap-x-6 gap-y-2 border-y border-white/10 bg-black/80 px-6 py-4 backdrop-blur-xl md:-mx-10 md:px-10" role="tablist" aria-label="Filter photos">
+            {[["all", photos.length] as [string, number], ...categories].map(([key, count]) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={filter === key}
+                onClick={() => setFilter(key)}
+                className={`relative rounded-none bg-transparent px-0 py-1 text-xs md:text-sm font-semibold uppercase tracking-[0.2em] transition-colors ${
+                  filter === key ? "text-white" : "text-white/40 hover:text-white/80"
+                }`}
               >
-                <div className="glass rounded-xl overflow-hidden card-hover">
-                  {/* Category Image */}
-                  <div className="aspect-[16/9] bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Camera className="w-16 h-16 text-primary/30" />
-                    </div>
-                    <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-sm font-medium">{category.count} Photos</span>
-                    </div>
-                  </div>
-
-                  {/* Category Info */}
-                  <div className="p-6">
-                    <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
-                      {category.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      {category.description}
-                    </p>
-                  </div>
-                </div>
-              </MotionDiv>
+                {key === "all" ? "All" : titleCase(key)}
+                <sup className="ml-1 font-mono text-[9px] text-white/40">{count}</sup>
+                {filter === key && <motion.span layoutId="photo-filter" className="absolute -bottom-[17px] left-0 right-0 h-px bg-white" />}
+              </button>
             ))}
           </div>
+        )}
 
-          {/* Show empty categories section if no photos exist */}
-          {categoriesWithCounts.filter(category => category.count > 0).length === 0 && (
-            <div className="text-center py-12">
-              <Camera className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No photos in any category yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Start adding photos to your portfolio to see them organized by category.
-              </p>
-              <Button asChild>
-                <Link href="/admin/photos">Add Your First Photo</Link>
-              </Button>
+        {/* ── Gallery ── */}
+        <section className="pb-28 md:pb-40">
+          {loading ? (
+            <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+              {[320, 220, 400, 260, 340, 240].map((h, i) => (
+                <div key={i} className="mb-4 animate-pulse break-inside-avoid rounded-sm bg-white/[0.04]" style={{ height: h }} />
+              ))}
+            </div>
+          ) : visible.length === 0 ? (
+            <div className="border-y border-white/10 py-24 text-center">
+              <p className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white/20">Developing…</p>
+              <p className="mt-4 text-sm text-white/40">New photographs are on the way.</p>
+            </div>
+          ) : (
+            // Re-mount on filter change so the new set animates in
+            <div key={filter} className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+                {visible.map((photo, i) => (
+                  <motion.button
+                    key={photo.id}
+                    type="button"
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: EASE_OUT, delay: Math.min(i, 9) * 0.04 }}
+                    onClick={() => setOpen(i)}
+                    className="group relative mb-4 block w-full break-inside-avoid overflow-hidden rounded-sm bg-white/[0.03] p-0 text-left"
+                  >
+                    {/* Natural aspect ratio, so a plain lazy <img> */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.image}
+                      alt={photo.title || "Photograph"}
+                      loading="lazy"
+                      decoding="async"
+                      className="block w-full transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                    />
+                    <span className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/10 to-transparent p-5 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                      <span className="text-lg font-black uppercase tracking-tighter text-white">{photo.title || "Untitled"}</span>
+                      <span className="text-[10px] uppercase tracking-[0.25em] text-white/60">
+                        {[photo.category && titleCase(photo.category), photo.location].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </motion.button>
+                ))}
             </div>
           )}
         </section>
 
-        {/* Equipment Section */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="mb-12"
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Professional <span className="text-gradient">Equipment</span>
-            </h2>
-            <p className="text-muted-foreground">
-              High-quality gear to ensure exceptional image quality and reliability.
-            </p>
-          </MotionDiv>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="glass rounded-xl p-6 text-center">
-              <h3 className="font-semibold text-lg mb-3">Cameras</h3>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>Sony Alpha A7R IV</li>
-                <li>Sony Alpha A7 III</li>
-                <li>Sony RX100 VII</li>
-              </ul>
-            </div>
-            <div className="glass rounded-xl p-6 text-center">
-              <h3 className="font-semibold text-lg mb-3">Lenses</h3>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>Sony 24-70mm f/2.8 GM</li>
-                <li>Sony 70-200mm f/2.8 GM</li>
-                <li>Sony 85mm f/1.4 GM</li>
-              </ul>
-            </div>
-            <div className="glass rounded-xl p-6 text-center">
-              <h3 className="font-semibold text-lg mb-3">Accessories</h3>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>DJI Ronin Gimbal</li>
-                <li>Profoto Lighting</li>
-                <li>Manfrotto Tripods</li>
-              </ul>
-            </div>
+        {/* ── Equipment ── */}
+        <section className="pb-28 md:pb-40">
+          <SectionLabel index="02">Equipment</SectionLabel>
+          <div className="grid gap-px overflow-hidden rounded-sm border border-white/10 bg-white/10 md:grid-cols-3">
+            {equipment.map((group, i) => (
+              <motion.div
+                key={group.title}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: i * 0.1 }}
+                className="bg-black p-6 md:p-8"
+              >
+                <p className="mb-6 text-[10px] uppercase tracking-[0.3em] text-white/40">{group.title}</p>
+                <ul className="space-y-3">
+                  {group.items.map((item) => (
+                    <li key={item} className="text-sm md:text-base font-semibold">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="container-custom py-16">
-          <MotionDiv
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              License My <span className="text-gradient">Work</span>
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-              All photographs are available for licensing for commercial and editorial use. 
-              Contact me for rates, usage rights, and custom photography projects.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/contact">
-                <Button variant="hero" size="lg">
-                  Get License Information
-                </Button>
-              </Link>
-              <Button variant="heroOutline" size="lg">
-                <Download className="w-4 h-4 mr-2" />
-                Download Media Kit
-              </Button>
-            </div>
-          </MotionDiv>
-        </section>
+        <BigCta eyebrow="Licensing & commissions" title="Book a shoot" />
       </main>
-      
-      {/* Photo Modal */}
-      {selectedPhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => setSelectedPhoto(null)}>
-          <div className="relative max-h-[90vh] max-w-4xl overflow-auto rounded-lg bg-background shadow-xl border-2" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setSelectedPhoto(null)}
-              className="absolute top-4 right-4 z-10 rounded-full bg-background/80 backdrop-blur-sm p-2 hover:bg-background transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="relative aspect-square md:aspect-auto">
-                {selectedPhoto.image ? (
-                  <img
-                    src={selectedPhoto.image}
-                    alt={selectedPhoto.title || "Photograph"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <Camera className="w-16 h-16 text-primary/30" />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col p-6">
-                <h3 className="text-2xl font-bold mb-2">{selectedPhoto.title || "Untitled"}</h3>
-                {selectedPhoto.location && (
-                  <p className="text-muted-foreground mb-1">{selectedPhoto.location}</p>
-                )}
-                {selectedPhoto.category && (
-                  <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4 w-fit">
-                    {selectedPhoto.category}
-                  </span>
-                )}
-                {selectedPhoto.description && (
-                  <p className="mb-6 leading-relaxed">{selectedPhoto.description}</p>
-                )}
-                {selectedPhoto.date && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-                    <Calendar className="w-4 h-4" />
-                    {selectedPhoto.date}
-                  </div>
-                )}
-                <div className="mt-auto flex gap-4">
-                  <Button asChild>
-                    <Link href="/photography/gallery">
-                      View Full Gallery
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button variant="outline" onClick={() => setSelectedPhoto(null)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <Footer />
+
+      <AnimatePresence>
+        {open !== null && visible[open] && <Lightbox photos={visible} index={open} onIndex={setOpen} onClose={close} />}
+      </AnimatePresence>
     </div>
   );
 }

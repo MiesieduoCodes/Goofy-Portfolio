@@ -1,173 +1,326 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { initContact3D } from "../animations/contact3d";
-import { Navbar } from "@/components/layout/Navbar";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpRight, Check, Copy, Loader2 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
-import { Mail, Phone, MapPin, Send, Loader2, Github, Linkedin, Instagram, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import AmbientParticles from "@/components/ambient-particles";
+import { SectionLabel } from "@/components/sections/BigCta";
+import { LOCATIONS, PlaceTime } from "@/components/world-clock";
+import { contactSchema, fieldErrors, type ContactField } from "@/lib/contact";
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+const EMAIL = "miesieduoveria@gmail.com";
+const PHONE = { display: "+234 906 046 2206", href: "tel:+2349060462206" };
+
+const TOPICS = ["Website", "Mobile app", "Game", "Photography", "Music", "Something else"];
+
+const socials = [
+  { name: "GitHub", href: "https://github.com/MiesieduoCodes" },
+  { name: "LinkedIn", href: "https://ng.linkedin.com/in/goofydidthis" },
+  { name: "Instagram", href: "https://www.instagram.com/goofy_did_this/" },
+  { name: "X / Twitter", href: "https://x.com/MiesieduoVeria" },
+];
+
+type Field = ContactField;
+type Status = "idle" | "sending" | "sent" | "error";
+
+function Input({
+  id,
+  label,
+  value,
+  error,
+  onChange,
+  type = "text",
+  multiline,
+  autoComplete,
+}: {
+  id: Field;
+  label: string;
+  value: string;
+  error?: string;
+  onChange: (value: string) => void;
+  type?: string;
+  multiline?: boolean;
+  autoComplete?: string;
+}) {
+  const shared = {
+    id,
+    name: id,
+    value,
+    autoComplete,
+    "aria-invalid": !!error,
+    "aria-describedby": error ? `${id}-error` : undefined,
+    placeholder: " ",
+    className:
+      "peer w-full rounded-none border-0 border-b bg-transparent px-0 pb-3 pt-7 text-lg md:text-2xl text-white outline-none transition-colors placeholder:text-transparent focus:border-white " +
+      (error ? "border-red-400/70" : "border-white/20"),
+  };
+  return (
+    <div className="relative">
+      {multiline ? (
+        <textarea {...shared} rows={4} onChange={(e) => onChange(e.target.value)} className={shared.className + " resize-none"} />
+      ) : (
+        <input {...shared} type={type} onChange={(e) => onChange(e.target.value)} />
+      )}
+      {/* Floating label: sits in the field until it has focus or content */}
+      <label
+        htmlFor={id}
+        className="pointer-events-none absolute left-0 top-7 text-lg md:text-2xl text-white/40 transition-all duration-300 peer-focus:top-0 peer-focus:text-[10px] peer-focus:uppercase peer-focus:tracking-[0.3em] peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-[0.3em]"
+      >
+        {label}
+      </label>
+      {error && (
+        <p id={`${id}-error`} className="mt-2 text-xs text-red-400">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function Contact() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [values, setValues] = useState<Record<Field, string>>({ name: "", email: "", subject: "", message: "" });
+  const [topic, setTopic] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
+  const [status, setStatus] = useState<Status>("idle");
+  const [serverMessage, setServerMessage] = useState("");
+  const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    // Ensuring DOM is fully painted before initializing 3D animations
-    const timer = setTimeout(() => {
-      initContact3D();
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const set = (field: Field) => (value: string) => {
+    setValues((v) => ({ ...v, [field]: value }));
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(EMAIL);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.location.href = `mailto:${EMAIL}`;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    // Simulate signal transmission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert("Signal Received. Expect a transmission within 48 hours.");
-    }, 2000);
+    const parsed = contactSchema.safeParse(values);
+    if (!parsed.success) {
+      setErrors(fieldErrors(parsed.error));
+      return;
+    }
+    setErrors({});
+
+    setStatus("sending");
+    setServerMessage("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...parsed.data,
+          subject: topic ? `[${topic}] ${parsed.data.subject}` : parsed.data.subject,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setStatus("sent");
+        return;
+      }
+      if (Array.isArray(data.errors)) {
+        const fieldErrors: Partial<Record<Field, string>> = {};
+        data.errors.forEach((err: { field: Field; message: string }) => (fieldErrors[err.field] = err.message));
+        setErrors(fieldErrors);
+      }
+      setServerMessage(data.message || "Something went wrong. Please try again.");
+      setStatus("error");
+    } catch {
+      setServerMessage(`Couldn't reach the server. You can email me directly at ${EMAIL}.`);
+      setStatus("error");
+    }
+  };
+
+  const reset = () => {
+    setValues({ name: "", email: "", subject: "", message: "" });
+    setTopic(null);
+    setStatus("idle");
   };
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden relative">
-      <Navbar />
-
-      {/* AMBIENT PARTICLES (REUSED FROM ABOUT) */}
-      <AmbientParticles />
-
-      {/* NOISE OVERLAY FOR STUDIO TEXTURE */}
-      <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-      <main className="pt-32 pb-20 px-6 md:px-12 relative z-10 perspective-[1200px]">
-
-        {/* HERO HEADER */}
-        <section className="mb-24 text-center">
-          <h1 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter uppercase italic">
-            Enter the <span className="text-white/20">Portal</span>
+    <div className="min-h-screen bg-black text-white">
+      <main className="px-6 md:px-10 pt-36 md:pt-44">
+        {/* ── Header ── */}
+        <section className="pb-20 md:pb-28">
+          <SectionLabel index="01">Contact</SectionLabel>
+          <h1 className="text-[18vw] md:text-[13vw] font-black uppercase leading-[0.82] tracking-tighter">
+            {["Let's", "Talk"].map((line, i) => (
+              <span key={line} className="block overflow-hidden">
+                <motion.span
+                  className={`inline-block font-black ${i === 1 ? "text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.5)]" : ""}`}
+                  initial={{ y: "100%" }}
+                  animate={{ y: "0%" }}
+                  transition={{ duration: 1, ease: EASE_OUT, delay: 0.2 + i * 0.12 }}
+                >
+                  {line}
+                </motion.span>
+              </span>
+            ))}
           </h1>
-          <p className="text-white/40 max-w-2xl mx-auto text-lg md:text-xl font-light tracking-wide">
-            Let’s build something that doesn’t feel like a website.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: EASE_OUT, delay: 0.6 }}
+            className="mt-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+          >
+            <p className="max-w-md text-lg md:text-xl leading-relaxed text-white/50">
+              Let&apos;s build something that doesn&apos;t feel like a website. Tell me about your project.
+            </p>
+            <div className="flex items-center gap-3">
+              <a href={`mailto:${EMAIL}`} className="link-underline text-xl md:text-3xl font-semibold">
+                {EMAIL}
+              </a>
+              <button
+                type="button"
+                onClick={copyEmail}
+                aria-label="Copy email address"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-transparent p-0 text-white transition-colors hover:bg-white hover:text-black"
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </button>
+              <span aria-live="polite" className="text-[10px] uppercase tracking-[0.3em] text-white/50">
+                {copied ? "Copied" : ""}
+              </span>
+            </div>
+          </motion.div>
         </section>
 
-        {/* INTERACTIVE 3D GRID */}
-        <section className="grid lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
+        <section className="grid gap-16 pb-28 md:grid-cols-12 md:pb-40">
+          {/* ── Form ── */}
+          <div className="md:col-span-7">
+            <SectionLabel index="02">Send a message</SectionLabel>
+            <AnimatePresence mode="wait">
+              {status === "sent" ? (
+                <motion.div
+                  key="sent"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7, ease: EASE_OUT }}
+                  className="border-y border-white/10 py-16"
+                >
+                  <motion.span
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 14, delay: 0.15 }}
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-black"
+                  >
+                    <Check className="h-7 w-7" />
+                  </motion.span>
+                  <h2 className="mt-8 text-4xl md:text-6xl font-black uppercase tracking-tighter">Message sent</h2>
+                  <p className="mt-4 max-w-md text-white/50">
+                    Thanks, {values.name.split(" ")[0]}. I usually reply within 24–48 hours.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="mt-8 rounded-full border border-white/25 bg-transparent px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white"
+                  >
+                    Send another
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form key="form" noValidate onSubmit={handleSubmit} exit={{ opacity: 0 }} className="space-y-10">
+                  {/* Topic chips */}
+                  <fieldset>
+                    <legend className="mb-4 text-[10px] uppercase tracking-[0.3em] text-white/40">What&apos;s it about?</legend>
+                    <div className="flex flex-wrap gap-2">
+                      {TOPICS.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          aria-pressed={topic === t}
+                          onClick={() => setTopic((cur) => (cur === t ? null : t))}
+                          className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] transition-colors ${
+                            topic === t ? "border-white bg-white text-black" : "border-white/20 bg-transparent text-white/60 hover:border-white/60 hover:text-white"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
 
-          {/* TRANSMISSION FORM */}
-          <div className="contact-card glass-dark p-8 md:p-12 rounded-2xl border border-white/5 relative group">
-            <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="grid gap-10 md:grid-cols-2">
+                    <Input id="name" label="Your name" value={values.name} error={errors.name} onChange={set("name")} autoComplete="name" />
+                    <Input id="email" label="Email" type="email" value={values.email} error={errors.email} onChange={set("email")} autoComplete="email" />
+                  </div>
+                  <Input id="subject" label="Subject" value={values.subject} error={errors.subject} onChange={set("subject")} />
+                  <Input id="message" label="Tell me about your project" value={values.message} error={errors.message} onChange={set("message")} multiline />
 
-            <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter italic">Send Transmission</h2>
+                  {status === "error" && serverMessage && (
+                    <p role="alert" className="border-l-2 border-red-400/70 pl-4 text-sm text-red-300">
+                      {serverMessage}
+                    </p>
+                  )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Identity</label>
-                  <input
-                    required
-                    placeholder="Your Name"
-                    className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Frequency</label>
-                  <input
-                    required
-                    type="email"
-                    placeholder="Your Email"
-                    className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Objective</label>
-                <input
-                  required
-                  placeholder="Subject"
-                  className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Message Body</label>
-                <textarea
-                  required
-                  placeholder="Tell me about your project..."
-                  rows={5}
-                  className="w-full p-4 bg-white/5 border border-white/10 rounded-lg focus:border-primary/50 focus:bg-white/10 outline-none transition-all placeholder:text-white/20 resize-none"
-                />
-              </div>
-
-              <Button type="submit" disabled={isSubmitting} className="w-full h-16 text-lg font-black uppercase tracking-widest group relative overflow-hidden bg-white text-black hover:bg-white/90">
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : <Send className="w-5 h-5" />}
-                  {isSubmitting ? "Syncing..." : "Send Signal"}
-                </span>
-              </Button>
-            </form>
+                  <button
+                    type="submit"
+                    disabled={status === "sending"}
+                    className="group flex items-center gap-4 rounded-full bg-white py-4 pl-8 pr-4 text-base font-semibold text-black transition-opacity disabled:opacity-60"
+                  >
+                    {status === "sending" ? "Sending…" : "Send message"}
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white transition-transform duration-500 group-hover:rotate-45">
+                      {status === "sending" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
+                    </span>
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* CONTACT INFO SIDEBAR */}
-          <div className="space-y-8 flex flex-col justify-center">
-
-            <div className="contact-card glass-dark p-10 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-              <h2 className="text-sm font-bold mb-8 uppercase tracking-[0.3em] text-white/30">Coordinates</h2>
-
-              <div className="space-y-6 text-white/70">
-                <a href="mailto:miesieduoveria@gmail.com" className="flex items-center gap-4 group hover:text-white transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <span className="text-lg font-medium">miesieduoveria@gmail.com</span>
-                </a>
-                <a href="tel:+2349060462206" className="flex items-center gap-4 group hover:text-white transition-colors">
-                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
-                    <Phone className="w-5 h-5" />
-                  </div>
-                  <span className="text-lg font-medium">+234 906 046 2206</span>
-                </a>
-                <div className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-black transition-all">
-                    <MapPin className="w-5 h-5" />
-                  </div>
-                  <span className="text-lg font-medium">Kazakhstan / Remote</span>
-                </div>
+          {/* ── Details ── */}
+          <aside className="md:col-span-4 md:col-start-9">
+            <SectionLabel index="03">Details</SectionLabel>
+            <dl className="divide-y divide-white/10 border-y border-white/10">
+              <div className="py-5">
+                <dt className="text-[10px] uppercase tracking-[0.3em] text-white/40">Phone</dt>
+                <dd className="mt-2 text-lg font-semibold">
+                  <a href={PHONE.href} className="link-underline">
+                    {PHONE.display}
+                  </a>
+                </dd>
               </div>
-            </div>
-
-            <div className="contact-card glass-dark p-10 rounded-2xl border border-white/5">
-              <h2 className="text-sm font-bold mb-8 uppercase tracking-[0.3em] text-white/30">Neural Networks</h2>
-
-              <div className="flex gap-6">
-                {[
-                  { icon: Github, href: "https://github.com/MiesieduoCodes" },
-                  { icon: Linkedin, href: "https://ng.linkedin.com/in/goofydidthis" },
-                  { icon: Instagram, href: "https://www.instagram.com/goofy_did_this/" },
-                  { icon: X, href: "https://x.com/MiesieduoVeria/" }
-                ].map((social, i) => (
-                  <Link key={i} href={social.href} className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-all transform hover:-translate-y-2">
-                    <social.icon className="w-6 h-6" />
-                  </Link>
-                ))}
+              <div className="py-5">
+                <dt className="text-[10px] uppercase tracking-[0.3em] text-white/40">Currently</dt>
+                <dd className="mt-2 text-lg font-semibold">
+                  {LOCATIONS.current.label} · <PlaceTime timeZone={LOCATIONS.current.timeZone} />
+                </dd>
+                <dd className="text-sm text-white/40">Working remotely, worldwide</dd>
               </div>
-            </div>
+              <div className="py-5">
+                <dt className="text-[10px] uppercase tracking-[0.3em] text-white/40">Response time</dt>
+                <dd className="mt-2 text-lg font-semibold">24–48 hours</dd>
+              </div>
+            </dl>
 
-            <div className="contact-card glass-dark p-8 rounded-2xl border border-white/5 bg-primary/5">
-              <p className="text-white/40 text-sm leading-relaxed italic">
-                "Response window: 24–48 hours. <br />
-                Urgent? Mark your signal accordingly for prioritized bandwidth."
-              </p>
-            </div>
-
-          </div>
-
+            <p className="mb-2 mt-12 text-[10px] uppercase tracking-[0.3em] text-white/40">Elsewhere</p>
+            <ul>
+              {socials.map((s) => (
+                <li key={s.name} className="border-b border-white/10">
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-between py-4 text-2xl font-black uppercase tracking-tighter"
+                  >
+                    <span className="transition-transform duration-500 group-hover:translate-x-2">{s.name}</span>
+                    <ArrowUpRight className="h-5 w-5 text-white/40 transition-all duration-500 group-hover:rotate-45 group-hover:text-white" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </aside>
         </section>
-
       </main>
-
       <Footer />
     </div>
   );

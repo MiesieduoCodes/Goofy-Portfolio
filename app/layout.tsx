@@ -3,9 +3,17 @@ import type { Metadata } from 'next'
 import './globals.css'
 import CursorInit from '@/components/cursor-init'
 import { LayoutProvider } from '@/components/providers/LayoutProvider'
+import { SmoothScroll } from '@/components/effects/SmoothScroll'
+import { FilmGrain } from '@/components/effects/FilmGrain'
+import { ScrollProgress } from '@/components/effects/ScrollProgress'
+import { PageTransition } from '@/components/effects/PageTransition'
 
 export const metadata: Metadata = {
-  title: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
+  title: {
+    default: 'Miesieduo Veria | Web Developer · Game Developer · Nature Photographer · Drummer',
+    // Inner pages set their own title, e.g. "About — Miesieduo Veria"
+    template: '%s — Miesieduo Veria',
+  },
   description: 'Multi-disciplinary creative professional based in Nigeria. Building scalable web apps, immersive games, and professional creative media. At the intersection of code, lens, and rhythm.',
   keywords: 'web developer, game developer, photographer, drummer, Nigeria, creative, portfolio, Unity, React, TypeScript',
   authors: [{ name: 'Miesieduo Veria' }],
@@ -53,9 +61,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -74,10 +79,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-background text-foreground antialiased">
+        <div id="top" />
         <LayoutProvider>
+          <SmoothScroll />
+          <ScrollProgress />
           <Navbar />
           {children}
           <CursorInit />
+          <FilmGrain />
+          <PageTransition />
         </LayoutProvider>
       </body>
     </html>

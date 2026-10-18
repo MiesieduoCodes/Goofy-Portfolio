@@ -1,46 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read access to all collections for authenticated and unauthenticated users
+    // Keep this list in sync with NEXT_PUBLIC_ADMIN_EMAILS
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['miesieduoveria@gmail.com'];
+    }
+
+    // Portfolio content is public to read; only the admin can change it
     match /{document=**} {
       allow read: if true;
-      allow write: if true; // Allow write access from client for development/admin dashboard
-    }
-    
-    // Specific rules for collections
-    match /websites/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    match /games/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    match /experiences/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    match /tools/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    match /skills/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    match /techs/{document} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    match /photos/{document} {
-      allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
   }
 }

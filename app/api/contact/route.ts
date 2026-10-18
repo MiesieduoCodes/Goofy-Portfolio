@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Resend } from 'resend'
-
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY || 're_6Afeoyet_CfJpu2mJJci2aJzEDNwbiazB')
-
-// Form validation schema
-const contactSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  subject: z.string().min(5, 'Subject must be at least 5 characters'),
-  message: z.string().min(10, 'Message must be at least 10 characters'),
-})
+import { contactSchema, emailSubject, escapeHtml } from '@/lib/contact'
 
 export async function POST(request: NextRequest) {
   try {
-    // Debug: Check if API key is loaded
     if (!process.env.RESEND_API_KEY) {
       console.error('RESEND_API_KEY is not set in environment variables')
       return NextResponse.json(
@@ -27,21 +16,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('API Key found:', process.env.RESEND_API_KEY.substring(0, 10) + '...')
-    
+    const resend = new Resend(process.env.RESEND_API_KEY)
+
     // Parse the request body
-    const body = await request.json()
-    
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ success: false, message: 'Invalid request body.' }, { status: 400 })
+    }
+
     // Validate the form data
     const validatedData = contactSchema.parse(body)
     
-    console.log('Sending email with data:', validatedData)
-    
+    const name = escapeHtml(validatedData.name)
+    const email = escapeHtml(validatedData.email)
+    const subject = escapeHtml(validatedData.subject)
+    const message = escapeHtml(validatedData.message)
+
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'Portfolio Contact <onboarding@resend.dev>', // Change this to your domain later
       to: ['miesieduoveria@gmail.com'],
-      subject: `New Contact: ${validatedData.subject}`,
+      replyTo: validatedData.email,
+      subject: emailSubject(validatedData.subject),
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
@@ -50,14 +48,14 @@ export async function POST(request: NextRequest) {
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #007bff; margin-top: 0;">Contact Details:</h3>
-            <p><strong>Name:</strong> ${validatedData.name}</p>
-            <p><strong>Email:</strong> ${validatedData.email}</p>
-            <p><strong>Subject:</strong> ${validatedData.subject}</p>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
           </div>
           
           <div style="background: #fff; padding: 20px; border-left: 4px solid #007bff; margin: 20px 0;">
             <h3 style="color: #007bff; margin-top: 0;">Message:</h3>
-            <p style="white-space: pre-wrap;">${validatedData.message}</p>
+            <p style="white-space: pre-wrap;">${message}</p>
           </div>
           
           <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
@@ -65,7 +63,7 @@ export async function POST(request: NextRequest) {
               This message was sent from your portfolio contact form.
             </p>
             <p style="color: #666; font-size: 12px;">
-              Reply directly to: <a href="mailto:${validatedData.email}">${validatedData.email}</a>
+              Reply directly to: <a href="mailto:${email}">${email}</a>
             </p>
           </div>
         </div>
@@ -86,8 +84,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-    
-    console.log('Email sent successfully:', data)
     
     return NextResponse.json(
       { 

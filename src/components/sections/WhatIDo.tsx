@@ -1,167 +1,87 @@
 "use client";
 
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { Code2, Gamepad2, Camera, Music } from "lucide-react";
 import Link from "next/link";
-import { useRef } from "react";
+import { motion } from "framer-motion";
+import { ArrowUpRight, Camera, Code2, Gamepad2, Music } from "lucide-react";
+import { SectionLabel } from "@/components/sections/BigCta";
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 const services = [
   {
     icon: Code2,
     title: "Web Development",
-    description:
-      "High-performance systems, realtime apps, immersive UI, and smooth DX-driven engineering.",
-    href: "/services",
+    description: "High-performance systems, realtime apps, immersive UI, and smooth DX-driven engineering.",
+    href: "/web",
   },
   {
     icon: Gamepad2,
     title: "Game Development",
-    description:
-      "Physics-driven interactions, custom engines, procedural systems, and dynamic gameplay.",
-    href: "/game-dev",
+    description: "Physics-driven interactions, custom engines, procedural systems, and dynamic gameplay.",
+    href: "/games",
   },
   {
     icon: Camera,
     title: "Creative Media",
-    description:
-      "Cinematic capture, storytelling, color theory, and visual identity for brands & artists.",
+    description: "Cinematic capture, storytelling, color theory, and visual identity for brands & artists.",
     href: "/photography",
   },
   {
     icon: Music,
     title: "Music Production",
-    description:
-      "Percussive architecture, rhythmic textures, ambient scoring, and digital sound design.",
+    description: "Percussive architecture, rhythmic textures, ambient scoring, and digital sound design.",
     href: "/music",
   },
 ];
 
-// 3D tilt hook -----------------------------------------------------
-function useTilt() {
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const rotateX = useTransform(y, [0, 300], [8, -8]);
-  const rotateY = useTransform(x, [0, 300], [-8, 8]);
-
-  const onMove = (e: React.MouseEvent) => {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    x.set(e.clientX - rect.left);
-    y.set(e.clientY - rect.top);
-  };
-
-  return { ref, rotateX, rotateY, onMove };
-}
-
 export function WhatIDo() {
   return (
-    <section className="next-section py-28 bg-black relative overflow-hidden">
-      {/* ───────── AMBIENT GLOW (Blending with Hero) ───────── */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 right-0 w-[500px] h-[400px] bg-purple-600/10 blur-[150px]" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 blur-[200px]" />
+    <section id="what-i-do" className="bg-black px-6 py-28 md:px-10 md:py-40">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-6">
+        <SectionLabel index="02">What I do</SectionLabel>
+        <Link
+          href="/services"
+          className="group mb-10 flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/50 transition-colors hover:text-white"
+        >
+          All services
+          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </Link>
       </div>
 
-      {/* ───────── GRAIN LAYER (Consistency) ───────── */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-soft-light bg-[url('/grain.png')] bg-cover" />
-
-      {/* floating particles - Barely visible */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.015] animate-[pulse_10s_ease-in-out_infinite] bg-[radial-gradient(circle_at_center,white_0%,transparent_40%)]"></div>
-
-      <div className="container-custom relative z-10">
-        
-        {/* Section Label */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-20"
-        >
-          <span className="text-xl uppercase tracking-wider opacity-70">
-            But what do I do...?
-          </span>
-        </motion.div>
-
-        {/* Cards */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          transition={{ staggerChildren: 0.15 }}
-          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-10"
-        >
-          {services.map((service) => {
-            const { ref, rotateX, rotateY, onMove } = useTilt();
-
-            return (
-              <motion.div
-                key={service.title}
-                variants={{
-                  hidden: { opacity: 0, y: 40 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <Link href={service.href}>
-                  <motion.div
-                    ref={ref}
-                    onMouseMove={onMove}
-                    style={{ rotateX, rotateY }}
-                    whileHover={{ scale: 1.06 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                    className="
-                      relative p-8 rounded-3xl
-                      border border-white/10
-                      bg-white/[0.02] 
-                      backdrop-blur-xl
-                      shadow-[inset_0_0_0_0_rgba(255,255,255,0.2)]
-                      hover:shadow-[inset_0_0_12px_rgba(255,255,255,0.25)]
-                      transition-all duration-500 group
-                    "
-                  >
-                    {/* Glow border - Barely visible */}
-                    <span
-                      className="
-                        absolute inset-0 rounded-3xl pointer-events-none
-                        opacity-0 group-hover:opacity-0 
-                        transition-opacity duration-100
-                        bg-gradient-to-br from-primary/10 to-transparent
-                      "
-                    />
-
-                    {/* Icon */}
-                    <motion.div
-                      whileHover={{ scale: 1.2, rotate: 10 }}
-                      transition={{ type: "spring" }}
-                      className="
-                        w-14 h-14 flex items-center justify-center
-                        rounded-2xl bg-white/5 border border-white/10
-                        mb-6 backdrop-blur-sm
-                      "
-                    >
-                      <service.icon className="w-7 h-7 text-primary" />
-                    </motion.div>
-
-                    {/* Title */}
-                    <h3 className="font-display text-2xl font-semibold mb-3 tracking-tight">
-                      {service.title}
-                    </h3>
-
-                    {/* Desc */}
-                    <p className="text-base leading-relaxed text-muted-foreground">
-                      {service.description}
-                    </p>
-                  </motion.div>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </div>
-      {/* ───────── TOP FADE (For seamless transition) ───────── */}
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent pointer-events-none z-20" />
+      <ul>
+        {services.map((item, i) => (
+          <motion.li
+            key={item.title}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.8, ease: EASE_OUT, delay: i * 0.08 }}
+            className="border-t border-white/10 last:border-b"
+          >
+            <Link href={item.href} className="group relative block overflow-hidden">
+              {/* White fill that wipes up on hover */}
+              <span
+                aria-hidden
+                className="absolute inset-0 origin-bottom scale-y-0 bg-white transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-y-100"
+              />
+              <span className="relative grid grid-cols-12 items-center gap-4 py-7 md:py-10 transition-colors duration-500 group-hover:text-black">
+                <span className="col-span-2 md:col-span-1 font-mono text-xs text-white/40 transition-colors group-hover:text-black/50">
+                  0{i + 1}
+                </span>
+                <span className="col-span-10 md:col-span-6 text-3xl md:text-6xl font-black uppercase leading-none tracking-tighter transition-transform duration-500 md:group-hover:translate-x-3">
+                  {item.title}
+                </span>
+                <span className="col-span-10 col-start-3 md:col-start-auto md:col-span-4 text-sm text-white/50 transition-colors group-hover:text-black/70">
+                  {item.description}
+                </span>
+                <span className="hidden md:flex md:col-span-1 justify-end">
+                  <item.icon className="h-7 w-7 transition-transform duration-500 group-hover:rotate-12" strokeWidth={1.5} />
+                </span>
+              </span>
+            </Link>
+          </motion.li>
+        ))}
+      </ul>
     </section>
   );
 }

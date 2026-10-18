@@ -1,91 +1,53 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useInView, animate, useTransform, useMotionValueEvent } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { animate, motion, useInView } from "framer-motion";
 
 const stats = [
-  { value: 4, suffix: "+", label: "Years Experience" },
-  { value: 20, suffix: "+", label: "Projects Completed" },
-  { value: 300, suffix: "k+", label: "Lines of Code" },
-  { value: 3, suffix: "", label: "Instruments Mastered" },
+  { value: 4, suffix: "+", label: "Years experience" },
+  { value: 20, suffix: "+", label: "Projects completed" },
+  { value: 300, suffix: "k+", label: "Lines of code" },
+  { value: 3, suffix: "", label: "Instruments mastered" },
 ];
 
-function SmoothCounter({ value, suffix }: { value: number; suffix: string }) {
-  const count = useMotionValue(0);
-  const spring = useSpring(count, { stiffness: 60, damping: 20 });
-  const display = useTransform(spring, (val) => Math.floor(val));
-  const [roundedValue, setRoundedValue] = useState(0);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
-
-  useMotionValueEvent(display, "change", (latest) => {
-    setRoundedValue(latest);
-  });
+function CountUp({ to, suffix }: { to: number; suffix: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if (inView) {
-      animate(count, value, { duration: 2, ease: "easeOut" });
-    }
-  }, [inView, value, count]);
+    if (!inView) return;
+    const controls = animate(0, to, { duration: 1.8, ease: [0.16, 1, 0.3, 1], onUpdate: (v) => setValue(Math.round(v)) });
+    return () => controls.stop();
+  }, [inView, to]);
 
   return (
-    <motion.span
-      ref={ref}
-      className="text-4xl md:text-5xl font-black tracking-tight text-foreground"
-    >
-      {roundedValue}{suffix}
-    </motion.span>
+    <span ref={ref} className="tabular-nums">
+      {value}
+      {suffix}
+    </span>
   );
 }
 
 export function Stats() {
   return (
-    <section className="py-20 bg-black">
-      <div className="container-custom">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="flex flex-wrap justify-center gap-6 md:gap-10"
-        >
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              className="
-                group relative backdrop-blur-sm
-                border border-white/10 
-                bg-white/[0.02]
-                rounded-2xl p-6 text-center
-                transition-all duration-500
-                w-[160px] md:w-[240px]
-              "
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              whileHover={{
-                scale: 1.03,
-                rotateX: 5,
-                rotateY: -5,
-                transition: { duration: 0.4 },
-              }}
-            >
-              {/* subtle glow border on hover */}
-              <div className="
-                absolute inset-0 rounded-2xl opacity-0 
-                group-hover:opacity-100 transition-opacity duration-500
-                bg-gradient-to-br from-white/10 to-white/5
-              " />
-
-              <SmoothCounter value={stat.value} suffix={stat.suffix} />
-
-              <p className="mt-3 text-xs md:text-sm uppercase tracking-widest text-muted-foreground">
-                {stat.label}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
+    <section aria-label="In numbers" className="bg-black px-6 pb-28 md:px-10 md:pb-40">
+      <div className="grid grid-cols-2 border-t border-white/10 md:grid-cols-4">
+        {stats.map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.08 }}
+            className={`border-b border-white/10 py-10 md:border-b-0 md:py-14 ${i % 2 === 1 ? "border-l pl-6" : ""} ${i > 0 ? "md:border-l md:pl-8" : ""}`}
+          >
+            <p className="text-6xl md:text-8xl font-black leading-none tracking-tighter">
+              <CountUp to={stat.value} suffix={stat.suffix} />
+            </p>
+            <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-white/40">{stat.label}</p>
+          </motion.div>
+        ))}
       </div>
     </section>
   );
