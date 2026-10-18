@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X, Camera } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
+import { normalizeTags } from "@/components/projects"
+import { AdminThumb } from "../components/admin-ui"
 import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
 import { uploadFiles } from "@/lib/upload"
@@ -199,19 +201,11 @@ export default function AdminPhotosPage() {
   }
 
   // Get category color
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "landscape": return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-      case "wildlife": return "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-      case "urban": return "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-      case "portrait": return "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-      default: return "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
-    }
-  }
+  const getCategoryColor = (_category: string) => "border border-white/20 bg-transparent text-white/70"
 
   return (
     <AdminLayout title="Photo Gallery" description="Manage your photography portfolio">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -220,7 +214,7 @@ export default function AdminPhotosPage() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Form Section */}
             <div className="lg:col-span-1" ref={formRef}>
-              <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+              <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
@@ -233,12 +227,12 @@ export default function AdminPhotosPage() {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {success && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                      <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                         {success}
                       </div>
                     )}
                     {error && (
-                      <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                      <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                         {error}
                       </div>
                     )}
@@ -304,7 +298,7 @@ export default function AdminPhotosPage() {
                         {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                         {formData.image && (
                           <div className="relative">
-                            <img 
+                            <AdminThumb 
                               src={formData.image} 
                               alt="Preview" 
                               className="w-full h-48 object-cover rounded-md"
@@ -341,7 +335,7 @@ export default function AdminPhotosPage() {
                         <div className="grid grid-cols-2 gap-2 mt-3">
                           {formData.images.map((imgUrl, idx) => (
                             <div key={idx} className="relative group">
-                              <img
+                              <AdminThumb
                                 src={imgUrl}
                                 alt={`Additional View ${idx + 1}`}
                                 className="w-full h-20 object-cover rounded-md border border-border"
@@ -406,7 +400,7 @@ export default function AdminPhotosPage() {
 
             {/* Photos List */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="rounded-sm border-white/10 bg-transparent">
                 <CardHeader>
                   <CardTitle>Photo Gallery ({photos.length})</CardTitle>
                   <CardDescription>Your photography portfolio</CardDescription>
@@ -432,7 +426,7 @@ export default function AdminPhotosPage() {
                               </div>
                               <p className="text-sm text-muted-foreground mb-2">{photo.description}</p>
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {(photo.tags || []).map((tag: string) => (
+                                {normalizeTags(photo.tags).map((tag: string) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">
                                     {tag}
                                   </Badge>
@@ -457,7 +451,7 @@ export default function AdminPhotosPage() {
                             </div>
                           </div>
                           {photo.image && (
-                            <img 
+                            <AdminThumb 
                               src={photo.image} 
                               alt={photo.title}
                               className="w-full h-48 object-cover rounded-md"
@@ -466,7 +460,7 @@ export default function AdminPhotosPage() {
                           {photo.images && photo.images.length > 0 && (
                             <div className="flex gap-2 mt-2 overflow-x-auto">
                               {photo.images.map((imgUrl: string, idx: number) => (
-                                <img
+                                <AdminThumb
                                   key={idx}
                                   src={imgUrl}
                                   alt={`${photo.title} screenshot ${idx + 1}`}

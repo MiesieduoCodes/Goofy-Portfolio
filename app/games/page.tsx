@@ -5,8 +5,8 @@ import { motion } from "framer-motion"
 import { DisciplinePage } from "@/components/discipline-page"
 import { SectionLabel } from "@/components/sections/BigCta"
 
-// Phaser touches `window`, so it only loads in the browser
-const PhaserGame = dynamic(() => import("@/components/phaser-game"), {
+// Three.js needs `window`, so the demo only loads in the browser
+const ExploreWorld = dynamic(() => import("@/components/explore-world"), {
   ssr: false,
   loading: () => (
     <div className="flex h-[450px] w-full items-center justify-center text-[10px] uppercase tracking-[0.3em] text-white/40">
@@ -38,7 +38,7 @@ export default function GamesPage() {
             data-lenis-prevent
             className="relative min-h-[450px] w-full rounded-sm border border-white/10 bg-neutral-950 p-2"
           >
-            <PhaserGame />
+            <ExploreWorld />
           </motion.div>
         </section>
       }

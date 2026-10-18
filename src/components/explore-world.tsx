@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 
-export default function PhaserGame() {
+export default function ExploreWorld() {
   const mountRef = useRef<HTMLDivElement>(null)
   const keysRef = useRef<Record<string, boolean>>({})
 
@@ -169,7 +169,7 @@ export default function PhaserGame() {
     return () => {
       window.removeEventListener("keydown", onKeyDown)
       window.removeEventListener("keyup", onKeyUp)
-      ;(mountRef.current as any)?.__threeCleanup?.()
+      ;(container as any).__threeCleanup?.()
     }
   }, [])
 

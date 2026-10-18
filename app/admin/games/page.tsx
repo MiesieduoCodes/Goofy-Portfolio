@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
+import { normalizeTags } from "@/components/projects"
+import { AdminThumb } from "../components/admin-ui"
 import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
 import { uploadFiles } from "@/lib/upload"
@@ -170,12 +172,12 @@ export default function AdminGamesPage() {
 
   return (
     <AdminLayout title="Game Management" description="Manage your game development portfolio projects">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Form */}
             <div className="lg:col-span-1" ref={formRef}>
-              <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+              <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
@@ -185,12 +187,12 @@ export default function AdminGamesPage() {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {success && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                      <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                         {success}
                       </div>
                     )}
                     {error && (
-                      <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                      <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                         {error}
                       </div>
                     )}
@@ -216,7 +218,7 @@ export default function AdminGamesPage() {
                       {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                       {formData.image && (
                         <div className="relative mt-2">
-                          <img src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-md" />
+                          <AdminThumb src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-md" />
                           <Button type="button" variant="destructive" size="sm" className="absolute top-2 right-2" onClick={() => setFormData(prev => ({ ...prev, image: "" }))}>
                             <X className="w-4 h-4" />
                           </Button>
@@ -234,7 +236,7 @@ export default function AdminGamesPage() {
                         <div className="grid grid-cols-2 gap-2 mt-3">
                           {formData.images.map((imgUrl, idx) => (
                             <div key={idx} className="relative group">
-                              <img
+                              <AdminThumb
                                 src={imgUrl}
                                 alt={`Screenshot ${idx + 1}`}
                                 className="w-full h-20 object-cover rounded-md border border-border"
@@ -274,7 +276,7 @@ export default function AdminGamesPage() {
 
             {/* List */}
             <div className="lg:col-span-2">
-              <Card>
+              <Card className="rounded-sm border-white/10 bg-transparent">
                 <CardHeader>
                   <CardTitle>Games ({games.length})</CardTitle>
                 </CardHeader>
@@ -295,7 +297,7 @@ export default function AdminGamesPage() {
                               </div>
                               <p className="text-sm text-muted-foreground mb-2">{game.description}</p>
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {(game.tags || []).map((tag: string) => (
+                                {normalizeTags(game.tags).map((tag: string) => (
                                   <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                                 ))}
                               </div>
@@ -310,12 +312,12 @@ export default function AdminGamesPage() {
                             </div>
                           </div>
                           {game.image && (
-                            <img src={game.image} alt={game.title} className="w-full h-32 object-cover rounded-md" />
+                            <AdminThumb src={game.image} alt={game.title} className="w-full h-32 object-cover rounded-md" />
                           )}
                           {game.images && game.images.length > 0 && (
                             <div className="flex gap-2 mt-2 overflow-x-auto">
                               {game.images.map((imgUrl: string, idx: number) => (
-                                <img
+                                <AdminThumb
                                   key={idx}
                                   src={imgUrl}
                                   alt={`${game.title} screenshot ${idx + 1}`}

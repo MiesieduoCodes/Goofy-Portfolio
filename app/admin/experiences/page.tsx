@@ -125,7 +125,7 @@ export default function AdminExperiencesPage() {
 
   return (
     <AdminLayout title="Experience Management" description="Manage your professional work experience">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -134,7 +134,7 @@ export default function AdminExperiencesPage() {
           <div className="grid lg:grid-cols-3 gap-8">
               {/* Form Section */}
               <div className="lg:col-span-1" ref={formRef}>
-                <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+                <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Plus className="w-5 h-5" />
@@ -147,12 +147,12 @@ export default function AdminExperiencesPage() {
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       {success && (
-                        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                        <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                           {success}
                         </div>
                       )}
                       {error && (
-                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                        <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                           {error}
                         </div>
                       )}
@@ -290,7 +290,7 @@ export default function AdminExperiencesPage() {
 
               {/* Experiences List */}
               <div className="lg:col-span-2">
-                <Card>
+                <Card className="rounded-sm border-white/10 bg-transparent">
                   <CardHeader>
                     <CardTitle>Work Experiences ({experiences.length})</CardTitle>
                     <CardDescription>Your professional work history</CardDescription>

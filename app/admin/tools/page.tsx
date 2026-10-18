@@ -105,18 +105,11 @@ export default function AdminToolsPage() {
   }
 
   // Get category color
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "web": return "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-      case "games": return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-      case "design": return "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-      default: return "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
-    }
-  }
+  const getCategoryColor = (_category: string) => "border border-white/20 bg-transparent text-white/70"
 
   return (
     <AdminLayout title="Tools & Skills" description="Manage your technical tools and skill levels">
-      <div className="container-custom py-8">
+      <div className="px-6 py-10 md:px-10">
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,7 +118,7 @@ export default function AdminToolsPage() {
           <div className="grid lg:grid-cols-3 gap-8">
               {/* Form Section */}
               <div className="lg:col-span-1" ref={formRef}>
-                <Card className={editingId ? 'ring-2 ring-primary shadow-lg shadow-primary/10' : ''}>
+                <Card className={`rounded-sm bg-transparent transition-colors ${editingId ? "border-white" : "border-white/10"}`}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Plus className="w-5 h-5" />
@@ -138,12 +131,12 @@ export default function AdminToolsPage() {
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       {success && (
-                        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-md text-sm">
+                        <div role="status" className="border-l-2 border-white bg-white/[0.04] px-4 py-3 text-sm text-white">
                           {success}
                         </div>
                       )}
                       {error && (
-                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-md text-sm">
+                        <div role="alert" className="border-l-2 border-red-400/70 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
                           {error}
                         </div>
                       )}
@@ -221,7 +214,7 @@ export default function AdminToolsPage() {
 
               {/* Tools List */}
               <div className="lg:col-span-2">
-                <Card>
+                <Card className="rounded-sm border-white/10 bg-transparent">
                   <CardHeader>
                     <CardTitle>Tools & Skills ({tools.length})</CardTitle>
                     <CardDescription>Your technical skills and tools</CardDescription>
