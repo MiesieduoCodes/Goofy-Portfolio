@@ -17,8 +17,9 @@ import {
   LogOut,
   Star
 } from "lucide-react"
-import { db } from "@/lib/firebase"
+import { db, auth, adminEmails } from "@/lib/firebase"
 import { collection, onSnapshot, query } from "firebase/firestore"
+import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth"
 
 
 
@@ -36,7 +37,72 @@ interface AdminLayoutProps {
   description?: string
 }
 
-export default function AdminLayout({ children, title, description }: AdminLayoutProps) {
+const isAdminUser = (user: User | null) =>
+  !!user?.email && user.emailVerified && adminEmails.includes(user.email.toLowerCase())
+
+// Gate every admin page behind Google sign-in with an allowed email
+export default function AdminLayout(props: AdminLayoutProps) {
+  const [user, setUser] = useState<User | null>(null)
+  const [checking, setChecking] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser)
+      setChecking(false)
+    })
+  }, [])
+
+  const handleSignIn = async () => {
+    setAuthError(null)
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider())
+    } catch (err: any) {
+      setAuthError(err?.message || "Sign-in failed")
+    }
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Checking access…</p>
+      </div>
+    )
+  }
+
+  if (!isAdminUser(user)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="w-full max-w-sm space-y-4 text-center">
+          <h1 className="font-display text-2xl font-bold">Admin Panel</h1>
+          {user ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {user.email} doesn't have admin access.
+              </p>
+              <Button variant="outline" className="w-full" onClick={() => signOut(auth)}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">Sign in to manage your portfolio.</p>
+              <Button className="w-full" onClick={handleSignIn}>
+                Sign in with Google
+              </Button>
+            </>
+          )}
+          {authError && <p className="text-sm text-destructive">{authError}</p>}
+        </div>
+      </div>
+    )
+  }
+
+  return <AdminShell {...props} />
+}
+
+function AdminShell({ children, title, description }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [counts, setCounts] = useState({
     websites: 0,
@@ -110,7 +176,7 @@ export default function AdminLayout({ children, title, description }: AdminLayou
       href: "/admin/games",
       icon: Gamepad2,
       countKey: "games",
-      color: "text-white"
+      color: "text-green-600"
     },
     {
       title: "Experiences",
@@ -218,6 +284,10 @@ export default function AdminLayout({ children, title, description }: AdminLayou
                 <Globe className="w-4 h-4 mr-2" />
                 View Portfolio
               </a>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" onClick={() => signOut(auth)}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign out
             </Button>
           </div>
         </div>
