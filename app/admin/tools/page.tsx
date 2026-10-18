@@ -184,6 +184,7 @@ export default function AdminToolsPage() {
                           className="w-full p-2 border rounded-md bg-background text-foreground border-input"
                         >
                           <option value="web">Web Development</option>
+                          <option value="mobile">Mobile Development</option>
                           <option value="games">Game Development</option>
                           <option value="design">Design</option>
                           <option value="other">Other</option>

@@ -10,7 +10,7 @@ A modern portfolio website built with Next.js, TypeScript, and Tailwind CSS, sho
 - **UI Components**: shadcn/ui with Radix UI primitives
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
-- **Fonts**: Inter & Space Grotesk (Google Fonts)
+- **Fonts**: Inter & Space Grotesk (@fontsource)
 - **Build Tool**: Next.js with SWC
 - **Deployment**: Ready for Vercel, Netlify, or any Node.js hosting
 
@@ -36,7 +36,7 @@ A modern portfolio website built with Next.js, TypeScript, and Tailwind CSS, sho
 │   │   └── ui/            # shadcn/ui components
 │   └── assets/            # Static assets (moved to public/)
 ├── public/                # Static assets (images, icons)
-├── next.config.js         # Next.js configuration
+├── next.config.mjs        # Next.js configuration
 ├── tailwind.config.ts      # Tailwind CSS configuration
 ├── package.json           # Dependencies and scripts
 └── README.md              # This file
@@ -136,7 +136,20 @@ Create a `.env.local` file with:
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SITE_NAME=Miesieduo Veria Digital Studio
+
+# Required for the contact form (/api/contact)
+RESEND_API_KEY=
+
+# Google accounts allowed into /admin (comma-separated).
+# Must match the email list in firestore.rules and storage.rules.
+NEXT_PUBLIC_ADMIN_EMAILS=miesieduoveria@gmail.com
 ```
+
+### Admin panel
+`/admin` requires Google sign-in. To set it up:
+1. In the Firebase console, enable **Authentication → Sign-in method → Google** and add your domain under **Authorized domains**.
+2. Set `NEXT_PUBLIC_ADMIN_EMAILS` locally and on your host.
+3. Deploy the security rules: `firebase deploy --only firestore:rules,storage`.
 
 ### Customization
 - **Colors**: Modify CSS variables in `app/globals.css`
@@ -165,13 +178,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **Portfolio**: [miesieduo.veria](https://miesieduo.veria)
-- **Email**: hello@miesieduo.veria
-- **LinkedIn**: [linkedin.com/in/miesieduo-veria](https://linkedin.com/in/miesieduo-veria)
+- **Email**: miesieduoveria@gmail.com
+- **GitHub**: [github.com/MiesieduoCodes](https://github.com/MiesieduoCodes)
+- **LinkedIn**: [linkedin.com/in/goofydidthis](https://ng.linkedin.com/in/goofydidthis)
+- **X**: [@MiesieduoVeria](https://x.com/MiesieduoVeria)
+- **Instagram**: [@goofy_did_this](https://www.instagram.com/goofy_did_this/)
 
 ---
 
-Built with ❤️ by [Miesieduo Veria](https://miesieduo.veria)
+Built with ❤️ by [Miesieduo Veria](https://github.com/MiesieduoCodes)
 # Achievement trigger
 bruh
 

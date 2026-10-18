@@ -10,15 +10,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X, Camera } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { uploadFiles } from "@/lib/upload"
 
 export default function AdminPhotosPage() {
   const [photos, setPhotos] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -157,15 +158,14 @@ export default function AdminPhotosPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setUploadProgress(0)
     setUploading(true)
     try {
-      const storageRef_instance = storageRef(storage, `photos/${Date.now()}-${file.name}`)
-      await uploadBytes(storageRef_instance, file)
-      const downloadURL = await getDownloadURL(storageRef_instance)
+      const [downloadURL] = await uploadFiles("photos", [file], setUploadProgress)
       setFormData(prev => ({ ...prev, image: downloadURL }))
-      console.log("✅ Image uploaded:", downloadURL)
     } catch (error) {
       console.error("❌ Error uploading image:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploading(false)
     }
@@ -176,18 +176,14 @@ export default function AdminPhotosPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    setUploadProgress(0)
     setUploadingScreenshots(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const ref = storageRef(storage, `photos/screenshots/${Date.now()}-${file.name}`)
-        await uploadBytes(ref, file)
-        return getDownloadURL(ref)
-      })
-      const urls = await Promise.all(uploadPromises)
+      const urls = await uploadFiles("photos/screenshots", Array.from(files), setUploadProgress)
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
-      console.log("✅ Screenshots uploaded:", urls)
     } catch (error) {
       console.error("❌ Error uploading screenshots:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploadingScreenshots(false)
       e.target.value = ""
@@ -305,6 +301,7 @@ export default function AdminPhotosPage() {
                           onChange={handleImageUpload}
                           disabled={uploading}
                         />
+                        {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                         {formData.image && (
                           <div className="relative">
                             <img 
@@ -338,7 +335,7 @@ export default function AdminPhotosPage() {
                         disabled={uploadingScreenshots}
                       />
                       {uploadingScreenshots && (
-                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots… {uploadProgress}%</p>
                       )}
                       {formData.images && formData.images.length > 0 && (
                         <div className="grid grid-cols-2 gap-2 mt-3">
@@ -377,7 +374,7 @@ export default function AdminPhotosPage() {
 
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
-                        {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add Photo")}
+                        {(uploading || uploadingScreenshots) ? `Uploading… ${uploadProgress}%` : (editingId ? "Update" : "Add Photo")}
                       </Button>
                       {editingId && (
                         <Button

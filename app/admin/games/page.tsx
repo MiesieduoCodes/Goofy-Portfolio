@@ -10,15 +10,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, Upload, X } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { uploadFiles } from "@/lib/upload"
 
 export default function AdminGamesPage() {
   const [games, setGames] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -127,14 +128,14 @@ export default function AdminGamesPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setUploadProgress(0)
     setUploading(true)
     try {
-      const storageRef_instance = storageRef(storage, `games/${Date.now()}-${file.name}`)
-      await uploadBytes(storageRef_instance, file)
-      const url = await getDownloadURL(storageRef_instance)
+      const [url] = await uploadFiles("games", [file], setUploadProgress)
       setFormData(prev => ({ ...prev, image: url }))
     } catch (error) {
       console.error("Upload error:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploading(false)
     }
@@ -145,17 +146,14 @@ export default function AdminGamesPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    setUploadProgress(0)
     setUploadingScreenshots(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const ref = storageRef(storage, `games/screenshots/${Date.now()}-${file.name}`)
-        await uploadBytes(ref, file)
-        return getDownloadURL(ref)
-      })
-      const urls = await Promise.all(uploadPromises)
+      const urls = await uploadFiles("games/screenshots", Array.from(files), setUploadProgress)
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
     } catch (error) {
       console.error("Upload error:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploadingScreenshots(false)
       e.target.value = ""
@@ -215,6 +213,7 @@ export default function AdminGamesPage() {
                     <div>
                       <Label>Screenshot</Label>
                       <Input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
+                      {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                       {formData.image && (
                         <div className="relative mt-2">
                           <img src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-md" />
@@ -229,7 +228,7 @@ export default function AdminGamesPage() {
                       <p className="text-xs text-muted-foreground mb-2">Upload multiple views/screenshots</p>
                       <Input type="file" accept="image/*" multiple onChange={handleScreenshotUpload} disabled={uploadingScreenshots} />
                       {uploadingScreenshots && (
-                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                        <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots… {uploadProgress}%</p>
                       )}
                       {formData.images.length > 0 && (
                         <div className="grid grid-cols-2 gap-2 mt-3">
@@ -260,7 +259,7 @@ export default function AdminGamesPage() {
                     </div>
                     <div className="flex gap-2">
                       <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
-                        {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add")}
+                        {(uploading || uploadingScreenshots) ? `Uploading… ${uploadProgress}%` : (editingId ? "Update" : "Add")}
                       </Button>
                       {editingId && (
                         <Button type="button" variant="outline" onClick={() => { setSuccess(null); setError(null); setEditingId(null); setFormData({ title: "", description: "", image: "", images: [], link: "", tags: "", category: "games", featured: false }); }}>

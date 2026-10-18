@@ -10,15 +10,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Trash2, ExternalLink, Upload, X } from "lucide-react"
 import AdminLayout from "../components/AdminLayout"
-import { db, storage } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot, query, orderBy } from "firebase/firestore"
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { uploadFiles } from "@/lib/upload"
 
 export default function AdminWebsitesPage() {
   const [websites, setWebsites] = useState<any[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshots, setUploadingScreenshots] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -160,15 +161,14 @@ export default function AdminWebsitesPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setUploadProgress(0)
     setUploading(true)
     try {
-      const storageRef_instance = storageRef(storage, `websites/${Date.now()}-${file.name}`)
-      await uploadBytes(storageRef_instance, file)
-      const downloadURL = await getDownloadURL(storageRef_instance)
+      const [downloadURL] = await uploadFiles("websites", [file], setUploadProgress)
       setFormData(prev => ({ ...prev, image: downloadURL }))
-      console.log("✅ Image uploaded:", downloadURL)
     } catch (error) {
       console.error("❌ Error uploading image:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploading(false)
     }
@@ -179,18 +179,14 @@ export default function AdminWebsitesPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    setUploadProgress(0)
     setUploadingScreenshots(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const ref = storageRef(storage, `websites/screenshots/${Date.now()}-${file.name}`)
-        await uploadBytes(ref, file)
-        return getDownloadURL(ref)
-      })
-      const urls = await Promise.all(uploadPromises)
+      const urls = await uploadFiles("websites/screenshots", Array.from(files), setUploadProgress)
       setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }))
-      console.log("✅ Screenshots uploaded:", urls)
     } catch (error) {
       console.error("❌ Error uploading screenshots:", error)
+      setError("Upload failed. Make sure you are signed in and the file is an image under 15MB.")
     } finally {
       setUploadingScreenshots(false)
       // Reset file input
@@ -263,6 +259,19 @@ export default function AdminWebsitesPage() {
                       </div>
 
                       <div>
+                        <Label htmlFor="category">Type</Label>
+                        <select
+                          id="category"
+                          value={formData.category}
+                          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                          className="w-full p-2 border rounded-md bg-background text-foreground border-input"
+                        >
+                          <option value="web">Website (shows on /web)</option>
+                          <option value="mobile">Mobile app (shows on /mobile)</option>
+                        </select>
+                      </div>
+
+                      <div>
                         <Label htmlFor="link">Live URL</Label>
                         <Input
                           id="link"
@@ -294,6 +303,7 @@ export default function AdminWebsitesPage() {
                             onChange={handleImageUpload}
                             disabled={uploading}
                           />
+                          {uploading && <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading… {uploadProgress}%</p>}
                           {formData.image && (
                             <div className="relative">
                               <img 
@@ -327,7 +337,7 @@ export default function AdminWebsitesPage() {
                           disabled={uploadingScreenshots}
                         />
                         {uploadingScreenshots && (
-                          <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots...</p>
+                          <p className="text-xs text-muted-foreground mt-1 animate-pulse">Uploading screenshots… {uploadProgress}%</p>
                         )}
                         {formData.images.length > 0 && (
                           <div className="grid grid-cols-2 gap-2 mt-3">
@@ -366,7 +376,7 @@ export default function AdminWebsitesPage() {
 
                       <div className="flex gap-2">
                         <Button type="submit" className="flex-1" disabled={uploading || uploadingScreenshots}>
-                          {(uploading || uploadingScreenshots) ? "Uploading..." : (editingId ? "Update" : "Add Website")}
+                          {(uploading || uploadingScreenshots) ? `Uploading… ${uploadProgress}%` : (editingId ? "Update" : "Add Website")}
                         </Button>
                         {editingId && (
                           <Button
